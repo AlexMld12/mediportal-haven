@@ -1,0 +1,54 @@
+
+import React, { useState, useEffect } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import Sidebar from './Sidebar';
+import Navbar from './Navbar';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+const DashboardLayout = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Simple authentication check
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    
+    if (!isLoggedIn) {
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+      
+      {/* Mobile Sidebar */}
+      {isMobile && isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-30" onClick={() => setIsSidebarOpen(false)}>
+          <div className="h-full" onClick={(e) => e.stopPropagation()}>
+            <Sidebar isMobile onClose={() => setIsSidebarOpen(false)} />
+          </div>
+        </div>
+      )}
+      
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Navbar onMenuClick={toggleSidebar} />
+        
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardLayout;

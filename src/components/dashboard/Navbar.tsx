@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Menu, User, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, User, LogOut, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
@@ -29,7 +29,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
     
     toast({
       title: "Logged out successfully",
-      description: "You have been logged out of MediPort"
+      description: "You have been logged out of BioMedBot"
     });
     
     // Redirect to login page
@@ -53,12 +53,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
         </h1>
       </div>
       
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="text-gray-500 relative">
-          <Bell />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-medical-accent"></span>
-        </Button>
-        
+      <div className="flex items-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 p-1 px-2">

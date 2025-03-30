@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,14 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 
-const SAMPLE_USERS = [
-  { id: 1, name: 'Admin User', email: 'admin@mediport.hospital', role: 'Administrator', status: 'Active' },
-  { id: 2, name: 'Dr. Sarah Johnson', email: 'sarah.johnson@mediport.hospital', role: 'Doctor', status: 'Active' },
-  { id: 3, name: 'Robert Chen', email: 'robert.chen@mediport.hospital', role: 'Pharmacist', status: 'Active' },
-  { id: 4, name: 'Emily Rodriguez', email: 'emily.rodriguez@mediport.hospital', role: 'Nurse', status: 'Inactive' },
-  { id: 5, name: 'Michael Thompson', email: 'michael.thompson@mediport.hospital', role: 'Transport Tech', status: 'Active' },
-];
-
 type User = {
   id: number;
   name: string;
@@ -22,6 +13,14 @@ type User = {
   role: string;
   status: 'Active' | 'Inactive';
 };
+
+const SAMPLE_USERS: User[] = [
+  { id: 1, name: 'Admin User', email: 'admin@biomedbot.hospital', role: 'Administrator', status: 'Active' },
+  { id: 2, name: 'Dr. Sarah Johnson', email: 'sarah.johnson@biomedbot.hospital', role: 'Doctor', status: 'Active' },
+  { id: 3, name: 'Robert Chen', email: 'robert.chen@biomedbot.hospital', role: 'Pharmacist', status: 'Active' },
+  { id: 4, name: 'Emily Rodriguez', email: 'emily.rodriguez@biomedbot.hospital', role: 'Nurse', status: 'Inactive' },
+  { id: 5, name: 'Michael Thompson', email: 'michael.thompson@biomedbot.hospital', role: 'Transport Tech', status: 'Active' },
+];
 
 const Users = () => {
   const { toast } = useToast();

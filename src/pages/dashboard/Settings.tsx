@@ -11,9 +11,9 @@ import { useToast } from "@/components/ui/use-toast";
 const Settings = () => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    siteName: 'MediPort Hospital',
-    adminEmail: 'admin@mediport.hospital',
-    apiKey: 'med-port-00xx-xxxx-xxxx-xxxxxxxxxxxx',
+    siteName: 'BioMedBot',
+    adminEmail: 'admin@biomedbot.hospital',
+    apiKey: 'bio-med-bot-00xx-xxxx-xxxx-xxxxxxxxxxxx',
     notificationsEnabled: true,
     darkMode: false,
     maintenanceMode: false

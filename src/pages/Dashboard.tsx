@@ -1,45 +1,19 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Pill, Truck, Clock, Users, Activity } from 'lucide-react';
+import { Clock, Activity } from 'lucide-react';
 
 const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-gray-800">Welcome to MediPort</h2>
+        <h2 className="text-3xl font-bold text-gray-800">Welcome to BioMedBot</h2>
         <p className="text-gray-600 mt-1">
           Semi-automated robotic medication transport system
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Deliveries</CardTitle>
-            <Truck className="h-4 w-4 text-medical-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              +2 from yesterday
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Medications Delivered</CardTitle>
-            <Pill className="h-4 w-4 text-medical-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">142</div>
-            <p className="text-xs text-muted-foreground">
-              +23 from yesterday
-            </p>
-          </CardContent>
-        </Card>
-        
+      <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Scheduled Tasks</CardTitle>
@@ -49,19 +23,6 @@ const Dashboard = () => {
             <div className="text-2xl font-bold">24</div>
             <p className="text-xs text-muted-foreground">
               For the next 24 hours
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <Users className="h-4 w-4 text-medical-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">7</div>
-            <p className="text-xs text-muted-foreground">
-              3 admins, 4 staff
             </p>
           </CardContent>
         </Card>

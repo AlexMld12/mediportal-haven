@@ -71,7 +71,7 @@ const Sidebar = ({ isMobile, onClose }: SidebarProps) => {
         {!isCollapsed && (
           <div className="flex items-center gap-2 text-sidebar-foreground">
             <HospitalIcon className="text-medical-primary" size={24} />
-            <span className="font-bold text-lg">MediPort</span>
+            <span className="font-bold text-lg">BioMedBot</span>
           </div>
         )}
         {isCollapsed && (

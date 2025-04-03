@@ -1,31 +1,87 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+
+type UserRole = 'Administrator' | 'Doctor' | 'Nurse' | 'Pharmacist' | 'Transport Tech';
 
 type User = {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: UserRole;
+  permissions: string[];
   status: 'Active' | 'Inactive';
 };
 
+// Updated sample users with permissions
 const SAMPLE_USERS: User[] = [
-  { id: 1, name: 'Admin User', email: 'admin@biomedbot.hospital', role: 'Administrator', status: 'Active' },
-  { id: 2, name: 'Dr. Sarah Johnson', email: 'sarah.johnson@biomedbot.hospital', role: 'Doctor', status: 'Active' },
-  { id: 3, name: 'Robert Chen', email: 'robert.chen@biomedbot.hospital', role: 'Pharmacist', status: 'Active' },
-  { id: 4, name: 'Emily Rodriguez', email: 'emily.rodriguez@biomedbot.hospital', role: 'Nurse', status: 'Inactive' },
-  { id: 5, name: 'Michael Thompson', email: 'michael.thompson@biomedbot.hospital', role: 'Transport Tech', status: 'Active' },
+  { 
+    id: 1, 
+    name: 'Admin User', 
+    email: 'admin@biomedbot.hospital', 
+    role: 'Administrator', 
+    permissions: ['manage_users', 'manage_patients', 'manage_medications', 'manage_transports', 'view_logs'],
+    status: 'Active' 
+  },
+  { 
+    id: 2, 
+    name: 'Dr. Sarah Johnson', 
+    email: 'sarah.johnson@biomedbot.hospital', 
+    role: 'Doctor', 
+    permissions: ['manage_patients', 'manage_medications', 'view_logs'],
+    status: 'Active' 
+  },
+  { 
+    id: 3, 
+    name: 'Robert Chen', 
+    email: 'robert.chen@biomedbot.hospital', 
+    role: 'Pharmacist', 
+    permissions: ['manage_medications', 'view_logs'],
+    status: 'Active' 
+  },
+  { 
+    id: 4, 
+    name: 'Emily Rodriguez', 
+    email: 'emily.rodriguez@biomedbot.hospital', 
+    role: 'Nurse', 
+    permissions: ['view_patients', 'view_medications', 'view_logs'],
+    status: 'Inactive' 
+  },
+  { 
+    id: 5, 
+    name: 'Michael Thompson', 
+    email: 'michael.thompson@biomedbot.hospital', 
+    role: 'Transport Tech', 
+    permissions: ['manage_transports', 'view_logs'],
+    status: 'Active' 
+  },
 ];
+
+// Predefined roles with their permissions
+const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
+  'Administrator': ['manage_users', 'manage_patients', 'manage_medications', 'manage_transports', 'view_logs'],
+  'Doctor': ['manage_patients', 'manage_medications', 'view_logs'],
+  'Nurse': ['view_patients', 'view_medications', 'view_logs'],
+  'Pharmacist': ['manage_medications', 'view_logs'],
+  'Transport Tech': ['manage_transports', 'view_logs']
+};
 
 const Users = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>(SAMPLE_USERS);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [newUser, setNewUser] = useState<Partial<User>>({
+    name: '',
+    email: '',
+    role: 'Nurse',
+    status: 'Active'
+  });
 
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -47,6 +103,52 @@ const Users = () => {
     }));
   };
 
+  const handleAddUser = () => {
+    if (!newUser.name || !newUser.email || !newUser.role) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill out all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newUserId = Math.max(...users.map(u => u.id)) + 1;
+    const userRole = newUser.role as UserRole;
+    
+    const createdUser: User = {
+      id: newUserId,
+      name: newUser.name,
+      email: newUser.email,
+      role: userRole,
+      permissions: ROLE_PERMISSIONS[userRole] || [],
+      status: newUser.status as 'Active' | 'Inactive' || 'Active'
+    };
+
+    setUsers([...users, createdUser]);
+    setNewUser({
+      name: '',
+      email: '',
+      role: 'Nurse',
+      status: 'Active'
+    });
+    setIsAddUserModalOpen(false);
+    
+    toast({
+      title: "User Created",
+      description: `${createdUser.name} has been added as a ${createdUser.role}`
+    });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewUser(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleRoleChange = (value: string) => {
+    setNewUser(prev => ({ ...prev, role: value as UserRole }));
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -66,14 +168,7 @@ const Users = () => {
               </CardDescription>
             </div>
             <div className="flex-shrink-0">
-              <Button
-                onClick={() => {
-                  toast({
-                    title: "Feature coming soon",
-                    description: "User creation will be available in a future update."
-                  });
-                }}
-              >
+              <Button onClick={() => setIsAddUserModalOpen(true)}>
                 Add New User
               </Button>
             </div>
@@ -170,6 +265,64 @@ const Users = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Add User Modal */}
+      {isAddUserModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4">Add New User</h3>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={newUser.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter full name"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={newUser.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter email address"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="role">Role</Label>
+                <Select value={newUser.role as string} onValueChange={handleRoleChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Administrator">Administrator</SelectItem>
+                    <SelectItem value="Doctor">Doctor</SelectItem>
+                    <SelectItem value="Nurse">Nurse</SelectItem>
+                    <SelectItem value="Pharmacist">Pharmacist</SelectItem>
+                    <SelectItem value="Transport Tech">Transport Tech</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button variant="outline" onClick={() => setIsAddUserModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddUser}>
+                  Add User
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, PillIcon, Truck, Clock, Users, Settings, 
-  ChevronLeft, ChevronRight, HospitalIcon, ActivityIcon 
+  ChevronLeft, ChevronRight, HospitalIcon, ActivityIcon, UserRound 
 } from 'lucide-react';
 
 type SidebarItemProps = {
@@ -54,6 +54,7 @@ const Sidebar = ({ isMobile, onClose }: SidebarProps) => {
 
   const menuItems = [
     { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+    { title: "Patients", icon: UserRound, path: "/dashboard/patients" },
     { title: "Medication", icon: PillIcon, path: "/dashboard/medication" },
     { title: "Transports", icon: Truck, path: "/dashboard/transports" },
     { title: "Schedule", icon: Clock, path: "/dashboard/schedule" },

@@ -49,7 +49,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
       
       <div className="flex-1 flex items-center">
         <h1 className="text-xl font-semibold text-medical-dark hidden md:block">
-          Dashboard
+          BioMedBot Dashboard
         </h1>
       </div>
       

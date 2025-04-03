@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PatientBedAssignment from '@/components/patient/PatientBedAssignment';
+import { hasPermission } from '@/utils/permissions';
+import type { UserRole, Permission } from '@/utils/permissions';
 
 type PatientSex = 'Male' | 'Female' | 'Other';
 type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
@@ -46,6 +49,12 @@ type Prescription = {
   prescribedBy: string;
   notes: string;
 };
+
+type NewPatient = Omit<Patient, 'id' | 'prescriptions'> & {
+  prescriptions?: Prescription[];
+};
+
+type NewPrescription = Omit<Prescription, 'id'>;
 
 // Sample patients data
 const SAMPLE_PATIENTS: Patient[] = [
@@ -127,9 +136,43 @@ const Patients = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   
-  const currentUserRole = 'Receptionist';
-  const isReceptionist = currentUserRole === 'Receptionist' || currentUserRole === 'Administrator';
-  const isDoctor = currentUserRole === 'Doctor' || currentUserRole === 'Administrator';
+  // Define the state for new patient
+  const [newPatient, setNewPatient] = useState<NewPatient>({
+    lastName: '',
+    firstName: '',
+    county: '',
+    town: '',
+    address: {
+      street: '',
+      streetNumber: '',
+      flatNumber: ''
+    },
+    phoneNumber: '',
+    email: '',
+    profession: '',
+    job: '',
+    patientState: 'Stable',
+    bedId: '',
+    sex: 'Male',
+    bloodType: 'O+',
+    admissionDate: new Date().toISOString().split('T')[0],
+  });
+
+  // Define the state for new prescription
+  const [newPrescription, setNewPrescription] = useState<NewPrescription>({
+    medication: '',
+    dosage: '',
+    frequency: '',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: '',
+    prescribedBy: '',
+    notes: ''
+  });
+  
+  // Using strings for role checking to match the type in permissions.ts
+  const currentUserRole: UserRole = 'Receptionist';
+  const isReceptionist = hasPermission(currentUserRole, 'assign_beds');
+  const isDoctor = hasPermission(currentUserRole, 'manage_patients');
   
   const filteredPatients = patients.filter(patient => {
     const searchLower = searchTerm.toLowerCase();

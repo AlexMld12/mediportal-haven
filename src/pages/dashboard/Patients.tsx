@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PatientBedAssignment from '@/components/patient/PatientBedAssignment';
 
 type PatientSex = 'Male' | 'Female' | 'Other';
 type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
@@ -29,6 +29,7 @@ type Patient = {
   job: string;
   patientState: PatientState;
   bedId: string;
+  room?: string;
   sex: PatientSex;
   bloodType: BloodType;
   admissionDate: string;
@@ -122,41 +123,14 @@ const Patients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [isBedAssignmentModalOpen, setIsBedAssignmentModalOpen] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   
-  const [newPatient, setNewPatient] = useState<Partial<Patient>>({
-    lastName: '',
-    firstName: '',
-    county: '',
-    town: '',
-    address: {
-      street: '',
-      streetNumber: '',
-      flatNumber: ''
-    },
-    phoneNumber: '',
-    email: '',
-    profession: '',
-    job: '',
-    patientState: 'Stable',
-    bedId: '',
-    sex: 'Male',
-    bloodType: 'O+',
-    admissionDate: new Date().toISOString().split('T')[0],
-    prescriptions: []
-  });
+  const currentUserRole = 'Receptionist';
+  const isReceptionist = currentUserRole === 'Receptionist' || currentUserRole === 'Administrator';
+  const isDoctor = currentUserRole === 'Doctor' || currentUserRole === 'Administrator';
   
-  const [newPrescription, setNewPrescription] = useState<Partial<Prescription>>({
-    medication: '',
-    dosage: '',
-    frequency: '',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: '',
-    prescribedBy: '',
-    notes: ''
-  });
-
   const filteredPatients = patients.filter(patient => {
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -173,7 +147,6 @@ const Patients = () => {
   });
 
   const handleAddPatient = () => {
-    // Basic validation
     if (!newPatient.lastName || !newPatient.firstName || !newPatient.bedId) {
       toast({
         title: "Missing Information",
@@ -210,7 +183,6 @@ const Patients = () => {
 
     setPatients([...patients, patientToAdd]);
     
-    // Reset form
     setNewPatient({
       lastName: '',
       firstName: '',
@@ -274,7 +246,6 @@ const Patients = () => {
       return patient;
     }));
 
-    // Reset form
     setNewPrescription({
       medication: '',
       dosage: '',
@@ -296,7 +267,6 @@ const Patients = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
-    // Handle nested address fields
     if (name.startsWith('address.')) {
       const addressField = name.split('.')[1];
       setNewPatient(prev => ({
@@ -332,13 +302,37 @@ const Patients = () => {
   const handleRemovePatientFromBed = (patientId: number) => {
     const patientName = patients.find(p => p.id === patientId)?.firstName + ' ' + patients.find(p => p.id === patientId)?.lastName;
     
-    // This would typically move the patient to a discharged state or archive
     setPatients(patients.filter(p => p.id !== patientId));
     
     toast({
       title: "Patient Removed",
       description: `${patientName} has been removed from their bed`
     });
+  };
+
+  const handleBedAssignment = (data: { patientId: number, room: string, bedId: string }) => {
+    setPatients(patients.map(patient => {
+      if (patient.id === data.patientId) {
+        return {
+          ...patient,
+          bedId: data.bedId,
+          room: data.room
+        };
+      }
+      return patient;
+    }));
+    
+    toast({
+      title: "Bed Assignment Updated",
+      description: `Patient moved to ${data.room}, Bed ${data.bedId}`
+    });
+    
+    setIsBedAssignmentModalOpen(false);
+  };
+
+  const openBedAssignmentModal = (patientId: number) => {
+    setSelectedPatientId(patientId);
+    setIsBedAssignmentModalOpen(true);
   };
 
   return (
@@ -350,6 +344,10 @@ const Patients = () => {
         </p>
       </div>
       
+      {isReceptionist && (
+        <PatientBedAssignment isReceptionist={true} />
+      )}
+      
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex justify-between items-center mb-4">
           <TabsList>
@@ -357,7 +355,9 @@ const Patients = () => {
             <TabsTrigger value="critical">Critical</TabsTrigger>
             <TabsTrigger value="stable">Stable</TabsTrigger>
           </TabsList>
-          <Button onClick={() => setIsAddPatientModalOpen(true)}>Add New Patient</Button>
+          <Button onClick={() => setIsAddPatientModalOpen(true)} disabled={!isReceptionist && !isDoctor}>
+            Add New Patient
+          </Button>
         </div>
         
         <TabsContent value="all" className="mt-0">
@@ -389,6 +389,7 @@ const Patients = () => {
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-3 px-4 font-medium">Name</th>
+                      <th className="text-left py-3 px-4 font-medium">Room</th>
                       <th className="text-left py-3 px-4 font-medium">Bed ID</th>
                       <th className="text-left py-3 px-4 font-medium">Status</th>
                       <th className="text-left py-3 px-4 font-medium">Blood Type</th>
@@ -399,6 +400,113 @@ const Patients = () => {
                   <tbody>
                     {filteredPatients.length > 0 ? (
                       filteredPatients.map((patient) => (
+                        <tr key={patient.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-4">{patient.lastName}, {patient.firstName}</td>
+                          <td className="py-3 px-4">{patient.room || 'Not assigned'}</td>
+                          <td className="py-3 px-4">{patient.bedId}</td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                              patient.patientState === 'Critical' || patient.patientState === 'Emergency'
+                                ? 'bg-red-100 text-red-800'
+                                : patient.patientState === 'Stable'
+                                ? 'bg-green-100 text-green-800'
+                                : patient.patientState === 'Improving'
+                                ? 'bg-blue-100 text-blue-800'
+                                : patient.patientState === 'Worsening'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {patient.patientState}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">{patient.bloodType}</td>
+                          <td className="py-3 px-4">{patient.admissionDate}</td>
+                          <td className="py-3 px-4">
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  toast({
+                                    title: "View Patient",
+                                    description: `Viewing details for ${patient.firstName} ${patient.lastName}`
+                                  });
+                                }}
+                              >
+                                View
+                              </Button>
+                              
+                              {isDoctor && (
+                                <Button 
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openPrescriptionModal(patient.id)}
+                                >
+                                  Prescribe
+                                </Button>
+                              )}
+                              
+                              {isReceptionist && (
+                                <Button 
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openBedAssignmentModal(patient.id)}
+                                >
+                                  Assign Bed
+                                </Button>
+                              )}
+                              
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                className="text-red-500 hover:text-red-700"
+                                onClick={() => handleRemovePatientFromBed(patient.id)}
+                                disabled={!isReceptionist && !isDoctor}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="py-6 text-center text-gray-500">
+                          No patients found matching your search criteria
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="critical" className="mt-0">
+          <Card>
+            <CardHeader>
+              <CardTitle>Critical Patients</CardTitle>
+              <CardDescription>
+                Patients requiring immediate attention
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 font-medium">Name</th>
+                      <th className="text-left py-3 px-4 font-medium">Bed ID</th>
+                      <th className="text-left py-3 px-4 font-medium">Status</th>
+                      <th className="text-left py-3 px-4 font-medium">Blood Type</th>
+                      <th className="text-left py-3 px-4 font-medium">Admission Date</th>
+                      <th className="text-left py-3 px-4 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPatients.filter(patient => patient.patientState === 'Critical' || patient.patientState === 'Emergency').length > 0 ? (
+                      filteredPatients.filter(patient => patient.patientState === 'Critical' || patient.patientState === 'Emergency').map((patient) => (
                         <tr key={patient.id} className="border-b hover:bg-gray-50">
                           <td className="py-3 px-4">{patient.lastName}, {patient.firstName}</td>
                           <td className="py-3 px-4">{patient.bedId}</td>
@@ -457,7 +565,7 @@ const Patients = () => {
                     ) : (
                       <tr>
                         <td colSpan={6} className="py-6 text-center text-gray-500">
-                          No patients found matching your search criteria
+                          No critical patients found
                         </td>
                       </tr>
                     )}
@@ -467,28 +575,8 @@ const Patients = () => {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Critical and Stable tabs just reuse the same content with different filters */}
-        <TabsContent value="critical" className="mt-0">
-          {/* Same card as above, filtered for critical patients */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Critical Patients</CardTitle>
-              <CardDescription>
-                Patients requiring immediate attention
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                {/* Same table as above */}
-                {/* ... */}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
         
         <TabsContent value="stable" className="mt-0">
-          {/* Same card as above, filtered for stable patients */}
           <Card>
             <CardHeader>
               <CardTitle>Stable Patients</CardTitle>
@@ -498,15 +586,90 @@ const Patients = () => {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                {/* Same table as above */}
-                {/* ... */}
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 font-medium">Name</th>
+                      <th className="text-left py-3 px-4 font-medium">Bed ID</th>
+                      <th className="text-left py-3 px-4 font-medium">Status</th>
+                      <th className="text-left py-3 px-4 font-medium">Blood Type</th>
+                      <th className="text-left py-3 px-4 font-medium">Admission Date</th>
+                      <th className="text-left py-3 px-4 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPatients.filter(patient => patient.patientState === 'Stable' || patient.patientState === 'Improving').length > 0 ? (
+                      filteredPatients.filter(patient => patient.patientState === 'Stable' || patient.patientState === 'Improving').map((patient) => (
+                        <tr key={patient.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-4">{patient.lastName}, {patient.firstName}</td>
+                          <td className="py-3 px-4">{patient.bedId}</td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                              patient.patientState === 'Critical' || patient.patientState === 'Emergency'
+                                ? 'bg-red-100 text-red-800'
+                                : patient.patientState === 'Stable'
+                                ? 'bg-green-100 text-green-800'
+                                : patient.patientState === 'Improving'
+                                ? 'bg-blue-100 text-blue-800'
+                                : patient.patientState === 'Worsening'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {patient.patientState}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">{patient.bloodType}</td>
+                          <td className="py-3 px-4">{patient.admissionDate}</td>
+                          <td className="py-3 px-4">
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  toast({
+                                    title: "View Patient",
+                                    description: `Viewing details for ${patient.firstName} ${patient.lastName}`
+                                  });
+                                }}
+                              >
+                                View
+                              </Button>
+                              
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openPrescriptionModal(patient.id)}
+                              >
+                                Prescribe
+                              </Button>
+                              
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                className="text-red-500 hover:text-red-700"
+                                onClick={() => handleRemovePatientFromBed(patient.id)}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="py-6 text-center text-gray-500">
+                          No stable or improving patients found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Add Patient Modal */}
       {isAddPatientModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -733,7 +896,6 @@ const Patients = () => {
         </div>
       )}
 
-      {/* Add Prescription Modal */}
       {isPrescriptionModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -828,6 +990,30 @@ const Patients = () => {
                   Add Prescription
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isBedAssignmentModalOpen && selectedPatientId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">Assign Bed to Patient</h3>
+            
+            <PatientBedAssignment 
+              patientId={selectedPatientId}
+              patientName={
+                patients.find(p => p.id === selectedPatientId)?.firstName + ' ' + 
+                patients.find(p => p.id === selectedPatientId)?.lastName
+              }
+              onAssignmentComplete={handleBedAssignment}
+              isReceptionist={isReceptionist}
+            />
+            
+            <div className="flex justify-end space-x-2 mt-6">
+              <Button variant="outline" onClick={() => setIsBedAssignmentModalOpen(false)}>
+                Cancel
+              </Button>
             </div>
           </div>
         </div>

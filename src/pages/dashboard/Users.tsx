@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 
-type UserRole = 'Administrator' | 'Doctor' | 'Nurse' | 'Pharmacist' | 'Transport Tech';
+type UserRole = 'Administrator' | 'Doctor' | 'Nurse' | 'Pharmacist' | 'Transport Tech' | 'Receptionist';
 
 type User = {
   id: number;
@@ -60,6 +59,14 @@ const SAMPLE_USERS: User[] = [
     permissions: ['manage_transports', 'view_logs'],
     status: 'Active' 
   },
+  { 
+    id: 6, 
+    name: 'Lisa Carter', 
+    email: 'lisa.carter@biomedbot.hospital', 
+    role: 'Receptionist', 
+    permissions: ['add_patients', 'assign_beds', 'view_patients'],
+    status: 'Active' 
+  },
 ];
 
 // Predefined roles with their permissions
@@ -68,7 +75,8 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   'Doctor': ['manage_patients', 'manage_medications', 'view_logs'],
   'Nurse': ['view_patients', 'view_medications', 'view_logs'],
   'Pharmacist': ['manage_medications', 'view_logs'],
-  'Transport Tech': ['manage_transports', 'view_logs']
+  'Transport Tech': ['manage_transports', 'view_logs'],
+  'Receptionist': ['add_patients', 'assign_beds', 'view_patients']
 };
 
 const Users = () => {
@@ -213,6 +221,10 @@ const Users = () => {
                             ? 'bg-green-100 text-green-800'
                             : user.role === 'Nurse'
                             ? 'bg-pink-100 text-pink-800'
+                            : user.role === 'Transport Tech'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : user.role === 'Receptionist'
+                            ? 'bg-gray-100 text-gray-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}>
                           {user.role}
@@ -307,6 +319,7 @@ const Users = () => {
                     <SelectItem value="Nurse">Nurse</SelectItem>
                     <SelectItem value="Pharmacist">Pharmacist</SelectItem>
                     <SelectItem value="Transport Tech">Transport Tech</SelectItem>
+                    <SelectItem value="Receptionist">Receptionist</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

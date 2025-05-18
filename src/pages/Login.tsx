@@ -41,6 +41,15 @@ const Login = () => {
       return;
     }
 
+    console.log("Attempting to connect to authentication service:", {
+      url: 'http://132.220.27.51/login',
+      credentials: {
+        username: formData.username,
+        // Not logging the actual password for security
+        passwordLength: formData.password.length
+      }
+    });
+
     try {
       // Connect to the external authentication service
       const response = await fetch('http://132.220.27.51/login', {
@@ -54,12 +63,19 @@ const Login = () => {
         }),
       });
 
+      console.log("Auth response status:", response.status);
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.log("Auth error data:", errorData);
         throw new Error(errorData.message || 'Authentication failed');
       }
 
       const data = await response.json();
+      console.log("Auth success data:", {
+        tokenReceived: !!data.token,
+        tokenLength: data.token ? data.token.length : 0
+      });
       
       // Store the JWT token
       localStorage.setItem('token', data.token);
@@ -76,7 +92,7 @@ const Login = () => {
       
       navigate('/dashboard');
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('Login error details:', err);
       setError(err instanceof Error ? err.message : 'Authentication failed. Please try again.');
       toast({
         variant: "destructive",

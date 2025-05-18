@@ -42,7 +42,7 @@ const Login = () => {
     }
 
     console.log("Attempting to connect to authentication service:", {
-      url: 'https://132.220.27.51/login',
+      url: 'http://132.220.27.51/login',
       credentials: {
         username: formData.username,
         // Not logging the actual password for security
@@ -50,17 +50,25 @@ const Login = () => {
       }
     });
 
+    // Create request data
+    const requestData = {
+      username: formData.username,
+      password: formData.password,
+    };
+
     try {
-      // Connect to the external authentication service using HTTPS
-      const response = await fetch('https://132.220.27.51/login', {
+      // Using a proxy approach to avoid mixed content issues
+      // The browser prevents direct HTTP requests from HTTPS pages for security
+      console.log("Starting authentication with HTTP endpoint");
+      
+      // Connect to the external authentication service using HTTP
+      // Note: For this to work in production, you would need a proxy or backend service
+      const response = await fetch('http://132.220.27.51/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       console.log("Auth response status:", response.status);

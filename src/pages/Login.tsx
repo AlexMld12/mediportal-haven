@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,7 +30,7 @@ const Login = () => {
     setFormData((prev) => ({ ...prev, rememberMe: checked }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
@@ -41,32 +41,51 @@ const Login = () => {
       return;
     }
 
-    // Mock authentication - in a real app, this would call an API
-    setTimeout(() => {
-      // For demo purposes, let's assume admin/admin is the only valid login
-      if (formData.username === 'admin' && formData.password === 'admin') {
-        // Store user session (would use JWT in real app)
-        localStorage.setItem('isLoggedIn', 'true');
-        if (formData.rememberMe) {
-          localStorage.setItem('username', formData.username);
-        }
-        
-        toast({
-          title: "Login successful",
-          description: "Welcome to MediPort",
-        });
-        
-        navigate('/dashboard');
-      } else {
-        setError('Invalid username or password');
-        toast({
-          variant: "destructive",
-          title: "Authentication failed",
-          description: "Please check your credentials and try again",
-        });
+    try {
+      // Connect to the external authentication service
+      const response = await fetch('http://132.220.27.51/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Authentication failed');
       }
+
+      const data = await response.json();
+      
+      // Store the JWT token
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('isLoggedIn', 'true');
+      
+      if (formData.rememberMe) {
+        localStorage.setItem('username', formData.username);
+      }
+      
+      toast({
+        title: "Login successful",
+        description: "Welcome to MediPort",
+      });
+      
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err instanceof Error ? err.message : 'Authentication failed. Please try again.');
+      toast({
+        variant: "destructive",
+        title: "Authentication failed",
+        description: "Please check your credentials and try again",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

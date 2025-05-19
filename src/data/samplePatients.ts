@@ -63,36 +63,38 @@ export const SAMPLE_PATIENTS: Patient[] = [
     room: "201"
   },
   {
-    id: 2,
-    lastName: 'Johnson',
-    firstName: 'Emily',
-    county: 'Pierce County',
-    town: 'Tacoma',
-    address: {
-      street: 'Oak Avenue',
-      streetNumber: '456',
-      flatNumber: '7C'
-    },
-    phoneNumber: '(253) 555-6789',
-    email: 'emily.johnson@example.com',
-    profession: 'Teacher',
-    job: 'Elementary School Teacher',
-    patientState: 'Improving',
-    bedId: 'B202',
-    sex: 'Female',
-    bloodType: 'A+',
-    admissionDate: '2023-06-20',
+    id: 3,
+    CNP: "3234567890123",
+    nume: "Johnson", // Changed from lastName to nume
+    prenume: "Emily",
+    judet: "Pierce County",
+    localitate: "Tacoma",
+    strada: "Oak Avenue",
+    nr_strada: 456,
+    scara: "7C",
+    apartament: 12,
+    telefon: "(253) 555-6789",
+    email: "emily.johnson@example.com",
+    profesie: "Teacher",
+    loc_de_munca: "Elementary School Teacher",
+    patientState: "Improving",
+    id_pat: "B202",
+    sex: "Female",
+    grupa_sange: "A",
+    rh: "pozitiv",
+    admissionDate: "2023-06-20",
     prescriptions: [
       {
         id: 2,
-        medication: 'Amoxicillin',
-        dosage: '250mg',
-        frequency: 'Every 8 hours',
-        startDate: '2023-06-20',
-        endDate: '2023-06-30',
-        prescribedBy: 'Dr. Robert Chen',
-        notes: 'Complete entire course of antibiotics'
+        medication: "Amoxicillin",
+        dosage: "250mg",
+        frequency: "Every 8 hours",
+        startDate: "2023-06-20",
+        endDate: "2023-06-30",
+        prescribedBy: "Dr. Robert Chen",
+        notes: "Complete entire course of antibiotics"
       }
-    ]
+    ],
+    room: "205"
   }
 ];

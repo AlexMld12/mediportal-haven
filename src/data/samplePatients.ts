@@ -1,40 +1,66 @@
 
-import type { Patient } from '../types/patient';
+import { Patient, PatientState } from '@/types/patient';
 
-// Sample patients data
+// Sample patient data for development and testing
 export const SAMPLE_PATIENTS: Patient[] = [
   {
     id: 1,
-    lastName: 'Smith',
-    firstName: 'John',
-    county: 'King County',
-    town: 'Seattle',
-    address: {
-      street: 'Main Street',
-      streetNumber: '123',
-      flatNumber: '4B'
-    },
-    phoneNumber: '(206) 555-1234',
-    email: 'john.smith@example.com',
-    profession: 'Engineer',
-    job: 'Software Developer',
-    patientState: 'Stable',
-    bedId: 'A101',
-    sex: 'Male',
-    bloodType: 'O+',
-    admissionDate: '2023-06-15',
+    CNP: "1234567890123",
+    nume: "Popescu", // Changed from lastName to nume
+    prenume: "Ion",
+    judet: "Bucuresti",
+    localitate: "Sector 1",
+    strada: "Calea Victoriei",
+    nr_strada: 10,
+    scara: "A",
+    apartament: 5,
+    telefon: "0722123456",
+    email: "ion.popescu@example.com",
+    profesie: "Profesor",
+    loc_de_munca: "Universitatea Bucuresti",
+    patientState: "Stable",
+    id_pat: "101",
+    sex: "M",
+    grupa_sange: "O",
+    rh: "pozitiv",
+    admissionDate: "2023-06-15",
     prescriptions: [
       {
         id: 1,
-        medication: 'Paracetamol',
-        dosage: '500mg',
-        frequency: 'Every 6 hours',
-        startDate: '2023-06-15',
-        endDate: '2023-06-22',
-        prescribedBy: 'Dr. Sarah Johnson',
-        notes: 'Take with food'
+        medication: "Paracetamol",
+        dosage: "500mg",
+        frequency: "Every 6 hours",
+        startDate: "2023-06-15",
+        endDate: "2023-06-22",
+        prescribedBy: "Dr. Alexandru",
+        notes: "Take after meals"
       }
-    ]
+    ],
+    room: "105"
+  },
+  {
+    id: 2,
+    CNP: "2234567890123",
+    nume: "Ionescu", // Changed from lastName to nume
+    prenume: "Ana",
+    judet: "Cluj",
+    localitate: "Cluj-Napoca",
+    strada: "Strada Republicii",
+    nr_strada: 15,
+    scara: "B",
+    apartament: 7,
+    telefon: "0733234567",
+    email: "ana.ionescu@example.com",
+    profesie: "Inginer",
+    loc_de_munca: "Tech SRL",
+    patientState: "Critical",
+    id_pat: "201",
+    sex: "F",
+    grupa_sange: "A",
+    rh: "negativ",
+    admissionDate: "2023-07-02",
+    prescriptions: [],
+    room: "201"
   },
   {
     id: 2,

@@ -12,6 +12,7 @@ type AddPatientFormProps = {
   onSelectChange: (field: string, value: string) => void;
   onAddPatient: () => void;
   onCancel: () => void;
+  isLoading?: boolean;
 };
 
 const AddPatientForm: React.FC<AddPatientFormProps> = ({
@@ -19,7 +20,8 @@ const AddPatientForm: React.FC<AddPatientFormProps> = ({
   onInputChange,
   onSelectChange,
   onAddPatient,
-  onCancel
+  onCancel,
+  isLoading = false
 }) => {
   return (
     <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -272,11 +274,11 @@ const AddPatientForm: React.FC<AddPatientFormProps> = ({
       </div>
       
       <div className="flex justify-end space-x-2 mt-6">
-        <Button variant="outline" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel} disabled={isLoading}>
           Cancel
         </Button>
-        <Button onClick={onAddPatient}>
-          Add Patient
+        <Button onClick={onAddPatient} disabled={isLoading}>
+          {isLoading ? "Adding Patient..." : "Add Patient"}
         </Button>
       </div>
     </div>

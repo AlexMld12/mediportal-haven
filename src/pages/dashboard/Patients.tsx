@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,7 @@ import AddPatientForm from '@/components/patient/AddPatientForm';
 import AddPrescriptionForm from '@/components/patient/AddPrescriptionForm';
 import { SAMPLE_PATIENTS } from '@/data/samplePatients';
 import { hasPermission } from '@/utils/permissions';
-import type { Patient, NewPatient, NewPrescription, PatientState } from '@/types/patient';
+import type { Patient, NewPatient, NewPrescription, PatientState, APIPatient } from '@/types/patient';
 import type { UserRole } from '@/utils/permissions';
 
 const Patients = () => {
@@ -24,6 +23,7 @@ const Patients = () => {
   const [isBedAssignmentModalOpen, setIsBedAssignmentModalOpen] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [isLoading, setIsLoading] = useState(false);
   
   // Define the state for new patient
   const [newPatient, setNewPatient] = useState<NewPatient>({
@@ -68,10 +68,10 @@ const Patients = () => {
     const searchLower = searchTerm.toLowerCase();
     // Add null/undefined checks for each property
     return (
-      (patient.nume?.toLowerCase() || '').includes(searchLower) ||
-      (patient.prenume?.toLowerCase() || '').includes(searchLower) ||
-      (patient.id_pat?.toLowerCase() || '').includes(searchLower) ||
-      (patient.patientState?.toLowerCase() || '').includes(searchLower)
+      ((patient.nume || '').toLowerCase().includes(searchLower)) ||
+      ((patient.prenume || '').toLowerCase().includes(searchLower)) ||
+      ((patient.id_pat || '').toLowerCase().includes(searchLower)) ||
+      ((patient.patientState || '').toLowerCase().includes(searchLower))
     );
   }).filter(patient => {
     if (activeTab === 'all') return true;
@@ -80,7 +80,7 @@ const Patients = () => {
     return true;
   });
 
-  const handleAddPatient = () => {
+  const handleAddPatient = async () => {
     if (!newPatient.nume || !newPatient.prenume || !newPatient.id_pat || !newPatient.CNP) {
       toast({
         title: "Missing Information",
@@ -90,62 +90,116 @@ const Patients = () => {
       return;
     }
 
-    const newPatientId = Math.max(...patients.map(p => p.id), 0) + 1;
-    
-    const patientToAdd: Patient = {
-      id: newPatientId,
-      CNP: newPatient.CNP,
-      nume: newPatient.nume,
-      prenume: newPatient.prenume,
-      judet: newPatient.judet,
-      localitate: newPatient.localitate,
-      strada: newPatient.strada,
-      nr_strada: parseInt(newPatient.nr_strada) || 0,
-      scara: newPatient.scara,
-      apartament: parseInt(newPatient.apartament) || 0,
-      telefon: newPatient.telefon,
-      email: newPatient.email,
-      profesie: newPatient.profesie,
-      loc_de_munca: newPatient.loc_de_munca,
-      patientState: newPatient.patientState,
-      id_pat: newPatient.id_pat,
-      sex: newPatient.sex,
-      grupa_sange: newPatient.grupa_sange,
-      rh: newPatient.rh,
-      admissionDate: newPatient.admissionDate,
-      prescriptions: []
-    };
+    setIsLoading(true);
 
-    setPatients([...patients, patientToAdd]);
-    
-    setNewPatient({
-      CNP: '',
-      nume: '',
-      prenume: '',
-      judet: '',
-      localitate: '',
-      strada: '',
-      nr_strada: '',
-      scara: '',
-      apartament: '',
-      telefon: '',
-      email: '',
-      profesie: '',
-      loc_de_munca: '',
-      patientState: 'Stable',
-      id_pat: '',
-      sex: 'M',
-      grupa_sange: 'O',
-      rh: 'pozitiv',
-      admissionDate: new Date().toISOString().split('T')[0],
-    });
-    
-    setIsAddPatientModalOpen(false);
-    
-    toast({
-      title: "Patient Added",
-      description: `${patientToAdd.prenume} ${patientToAdd.nume} has been added to bed ${patientToAdd.id_pat}`
-    });
+    try {
+      // Get the authentication token from localStorage
+      const authToken = localStorage.getItem('authToken');
+      
+      if (!authToken) {
+        toast({
+          title: "Authentication Error",
+          description: "You are not logged in. Please log in again.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Prepare the data for the API
+      const patientData = {
+        CNP: newPatient.CNP,
+        nume: newPatient.nume,
+        prenume: newPatient.prenume,
+        judet: newPatient.judet,
+        localitate: newPatient.localitate,
+        strada: newPatient.strada,
+        nr_strada: parseInt(newPatient.nr_strada) || 0,
+        scara: newPatient.scara,
+        apartament: parseInt(newPatient.apartament) || 0,
+        telefon: newPatient.telefon,
+        email: newPatient.email,
+        profesie: newPatient.profesie,
+        loc_de_munca: newPatient.loc_de_munca,
+        sex: newPatient.sex,
+        grupa_sange: newPatient.grupa_sange,
+        rh: newPatient.rh,
+        id_pat: newPatient.id_pat
+      };
+
+      console.log('Sending patient data:', patientData);
+
+      // Send POST request to the API
+      const response = await fetch('http://132.220.27.51/angajati/medic/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${authToken}`
+        },
+        body: JSON.stringify(patientData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error('API Error Response:', errorData);
+        throw new Error(`Failed to add patient. Status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log('API Response:', responseData);
+
+      // Create a new patient object for the UI with additional fields
+      const newPatientId = Math.max(...patients.map(p => p.id), 0) + 1;
+      const patientToAdd: Patient = {
+        id: newPatientId,
+        ...patientData,
+        nr_strada: parseInt(newPatient.nr_strada) || 0,
+        apartament: parseInt(newPatient.apartament) || 0,
+        patientState: newPatient.patientState,
+        admissionDate: newPatient.admissionDate,
+        prescriptions: []
+      };
+
+      setPatients([...patients, patientToAdd]);
+      
+      setNewPatient({
+        CNP: '',
+        nume: '',
+        prenume: '',
+        judet: '',
+        localitate: '',
+        strada: '',
+        nr_strada: '',
+        scara: '',
+        apartament: '',
+        telefon: '',
+        email: '',
+        profesie: '',
+        loc_de_munca: '',
+        patientState: 'Stable',
+        id_pat: '',
+        sex: 'M',
+        grupa_sange: 'O',
+        rh: 'pozitiv',
+        admissionDate: new Date().toISOString().split('T')[0],
+      });
+      
+      setIsAddPatientModalOpen(false);
+      
+      toast({
+        title: "Patient Added",
+        description: `${patientToAdd.prenume} ${patientToAdd.nume} has been added to bed ${patientToAdd.id_pat}`
+      });
+    } catch (error) {
+      console.error('Error adding patient:', error);
+      toast({
+        title: "Error Adding Patient",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleAddPrescription = () => {
@@ -378,6 +432,7 @@ const Patients = () => {
             onSelectChange={handleSelectChange}
             onAddPatient={handleAddPatient}
             onCancel={() => setIsAddPatientModalOpen(false)}
+            isLoading={isLoading}
           />
         </div>
       )}

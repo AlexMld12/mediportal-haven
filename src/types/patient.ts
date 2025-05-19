@@ -1,5 +1,5 @@
 
-export type PatientSex = 'M' | 'F' | 'Other';
+export type PatientSex = 'M' | 'F' | 'Other' | 'Male' | 'Female';
 export type BloodType = 'A' | 'B' | 'AB' | 'O';
 export type PatientState = 'Stable' | 'Critical' | 'Improving' | 'Worsening' | 'Emergency';
 export type RhFactor = 'pozitiv' | 'negativ';

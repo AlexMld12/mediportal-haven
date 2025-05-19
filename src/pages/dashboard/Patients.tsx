@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -65,11 +66,12 @@ const Patients = () => {
   
   const filteredPatients = patients.filter(patient => {
     const searchLower = searchTerm.toLowerCase();
+    // Add null/undefined checks for each property
     return (
-      patient.nume.toLowerCase().includes(searchLower) ||
-      patient.prenume.toLowerCase().includes(searchLower) ||
-      patient.id_pat.toLowerCase().includes(searchLower) ||
-      patient.patientState.toLowerCase().includes(searchLower)
+      (patient.nume?.toLowerCase() || '').includes(searchLower) ||
+      (patient.prenume?.toLowerCase() || '').includes(searchLower) ||
+      (patient.id_pat?.toLowerCase() || '').includes(searchLower) ||
+      (patient.patientState?.toLowerCase() || '').includes(searchLower)
     );
   }).filter(patient => {
     if (activeTab === 'all') return true;

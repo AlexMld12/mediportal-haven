@@ -15,16 +15,26 @@ const DashboardLayout = () => {
   useEffect(() => {
     // Check if user is logged in with consistent token names
     const token = localStorage.getItem('token');
-    const authToken = localStorage.getItem('authToken'); // Check both token names
+    const authToken = localStorage.getItem('authToken'); 
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     
-    if (!isLoggedIn || (!token && !authToken)) {
+    // Either token should be valid
+    const hasValidToken = !!token || !!authToken;
+    
+    if (!isLoggedIn || !hasValidToken) {
       toast({
         variant: "destructive",
         title: "Authentication required",
         description: "Please log in to access this page",
       });
       navigate('/login');
+    } else {
+      // Ensure both token keys exist if one exists
+      if (token && !authToken) {
+        localStorage.setItem('authToken', token);
+      } else if (authToken && !token) {
+        localStorage.setItem('token', authToken);
+      }
     }
   }, [navigate, toast]);
 

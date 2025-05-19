@@ -82,12 +82,18 @@ const Login = () => {
       const data = await response.json();
       console.log("Auth success data:", {
         tokenReceived: !!data.token,
-        tokenLength: data.token ? data.token.length : 0
+        tokenLength: data.token ? data.token.length : 0,
+        tokenPreview: data.token ? data.token.substring(0, 10) + '...' : 'No token'
       });
       
-      // Store the JWT token - IMPORTANT: Store as authToken consistently
+      // Clear any existing tokens first
+      localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('isLoggedIn');
+      
+      // Store the JWT token consistently in both places
       localStorage.setItem('token', data.token);
-      localStorage.setItem('authToken', data.token); // Store with consistent key name
+      localStorage.setItem('authToken', data.token);
       localStorage.setItem('isLoggedIn', 'true');
       
       if (formData.rememberMe) {

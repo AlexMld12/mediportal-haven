@@ -93,10 +93,19 @@ const Patients = () => {
     setIsLoading(true);
 
     try {
-      // Get the authentication token from localStorage - check both possible storage keys
-      const authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
+      // Get ALL authentication tokens from localStorage to ensure we have a valid one
+      const token = localStorage.getItem('token');
+      const authToken = localStorage.getItem('authToken');
+      const finalToken = authToken || token;
       
-      if (!authToken) {
+      console.log('Auth check:', { 
+        hasToken: !!token, 
+        hasAuthToken: !!authToken, 
+        usingToken: !!finalToken,
+        tokenPreview: finalToken ? finalToken.substring(0, 10) + '...' : 'No token available'
+      });
+      
+      if (!finalToken) {
         toast({
           title: "Authentication Error",
           description: "You are not logged in. Please log in again.",
@@ -128,14 +137,14 @@ const Patients = () => {
       };
 
       console.log('Sending patient data:', patientData);
-      console.log('Using authentication token:', authToken.substring(0, 10) + '...');
+      console.log('Using authentication token:', finalToken.substring(0, 10) + '...');
 
-      // Send POST request to the API
+      // Send POST request to the API with the corrected authentication header
       const response = await fetch('http://132.220.27.51/angajati/medic/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${authToken}`
+          'Authorization': `Token ${finalToken}`
         },
         body: JSON.stringify(patientData)
       });
@@ -145,6 +154,22 @@ const Patients = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
         console.error('API Error Response:', errorData);
+        
+        // If we get a 401, that means our token is invalid, let's clear it and redirect to login
+        if (response.status === 401) {
+          toast({
+            title: "Session Expired",
+            description: "Your session has expired. Please log in again.",
+            variant: "destructive"
+          });
+          // Clear localStorage and redirect to login
+          localStorage.removeItem('token');
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('isLoggedIn');
+          window.location.href = '/login';
+          return;
+        }
+        
         throw new Error(`Failed to add patient. Status: ${response.status}`);
       }
 

@@ -85,8 +85,9 @@ const Login = () => {
         tokenLength: data.token ? data.token.length : 0
       });
       
-      // Store the JWT token
+      // Store the JWT token - IMPORTANT: Store as authToken consistently
       localStorage.setItem('token', data.token);
+      localStorage.setItem('authToken', data.token); // Store with consistent key name
       localStorage.setItem('isLoggedIn', 'true');
       
       if (formData.rememberMe) {

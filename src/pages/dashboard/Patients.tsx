@@ -93,8 +93,8 @@ const Patients = () => {
     setIsLoading(true);
 
     try {
-      // Get the authentication token from localStorage
-      const authToken = localStorage.getItem('authToken');
+      // Get the authentication token from localStorage - check both possible storage keys
+      const authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       if (!authToken) {
         toast({
@@ -128,6 +128,7 @@ const Patients = () => {
       };
 
       console.log('Sending patient data:', patientData);
+      console.log('Using authentication token:', authToken.substring(0, 10) + '...');
 
       // Send POST request to the API
       const response = await fetch('http://132.220.27.51/angajati/medic/', {
@@ -138,6 +139,8 @@ const Patients = () => {
         },
         body: JSON.stringify(patientData)
       });
+
+      console.log('API response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);

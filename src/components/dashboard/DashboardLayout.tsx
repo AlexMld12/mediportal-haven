@@ -13,11 +13,12 @@ const DashboardLayout = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is logged in
+    // Check if user is logged in with consistent token names
     const token = localStorage.getItem('token');
+    const authToken = localStorage.getItem('authToken'); // Check both token names
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     
-    if (!isLoggedIn || !token) {
+    if (!isLoggedIn || (!token && !authToken)) {
       toast({
         variant: "destructive",
         title: "Authentication required",

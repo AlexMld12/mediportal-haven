@@ -1,30 +1,52 @@
 
-export type PatientSex = 'Male' | 'Female' | 'Other';
-export type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+export type PatientSex = 'M' | 'F' | 'Other';
+export type BloodType = 'A' | 'B' | 'AB' | 'O';
 export type PatientState = 'Stable' | 'Critical' | 'Improving' | 'Worsening' | 'Emergency';
+export type RhFactor = 'pozitiv' | 'negativ';
 
 export type Patient = {
   id: number;
-  lastName: string;
-  firstName: string;
-  county: string;
-  town: string;
-  address: {
-    street: string;
-    streetNumber: string;
-    flatNumber: string;
-  };
-  phoneNumber: string;
+  CNP?: string;
+  nume: string;
+  prenume: string;
+  judet: string;
+  localitate: string;
+  strada: string;
+  nr_strada: number;
+  scara: string;
+  apartament: number;
+  telefon: string;
   email: string;
-  profession: string;
-  job: string;
+  profesie: string;
+  loc_de_munca: string;
   patientState: PatientState;
-  bedId: string;
-  room?: string;
+  id_pat: string;
   sex: PatientSex;
-  bloodType: BloodType;
+  grupa_sange: string;
+  rh: RhFactor;
   admissionDate: string;
   prescriptions: Prescription[];
+  room?: string;
+};
+
+export type APIPatient = {
+  CNP: string;
+  nume: string;
+  prenume: string;
+  judet: string;
+  localitate: string;
+  strada: string;
+  nr_strada: number;
+  scara: string;
+  apartament: number;
+  telefon: string;
+  email: string;
+  profesie: string;
+  loc_de_munca: string;
+  sex: string;
+  grupa_sange: string;
+  rh: string;
+  id_pat: string;
 };
 
 export type Prescription = {
@@ -38,8 +60,26 @@ export type Prescription = {
   notes: string;
 };
 
-export type NewPatient = Omit<Patient, 'id' | 'prescriptions'> & {
-  prescriptions?: Prescription[];
+export type NewPatient = {
+  CNP: string;
+  nume: string;
+  prenume: string;
+  judet: string;
+  localitate: string;
+  strada: string;
+  nr_strada: string;
+  scara: string;
+  apartament: string;
+  telefon: string;
+  email: string;
+  profesie: string;
+  loc_de_munca: string;
+  patientState: PatientState;
+  id_pat: string;
+  sex: PatientSex;
+  grupa_sange: string;
+  rh: RhFactor;
+  admissionDate: string;
 };
 
 export type NewPrescription = Omit<Prescription, 'id'>;

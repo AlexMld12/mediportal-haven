@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,23 +26,24 @@ const Patients = () => {
   
   // Define the state for new patient
   const [newPatient, setNewPatient] = useState<NewPatient>({
-    lastName: '',
-    firstName: '',
-    county: '',
-    town: '',
-    address: {
-      street: '',
-      streetNumber: '',
-      flatNumber: ''
-    },
-    phoneNumber: '',
+    CNP: '',
+    nume: '',
+    prenume: '',
+    judet: '',
+    localitate: '',
+    strada: '',
+    nr_strada: '',
+    scara: '',
+    apartament: '',
+    telefon: '',
     email: '',
-    profession: '',
-    job: '',
+    profesie: '',
+    loc_de_munca: '',
     patientState: 'Stable',
-    bedId: '',
-    sex: 'Male',
-    bloodType: 'O+',
+    id_pat: '',
+    sex: 'M',
+    grupa_sange: 'O',
+    rh: 'pozitiv',
     admissionDate: new Date().toISOString().split('T')[0],
   });
 
@@ -66,9 +66,9 @@ const Patients = () => {
   const filteredPatients = patients.filter(patient => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      patient.lastName.toLowerCase().includes(searchLower) ||
-      patient.firstName.toLowerCase().includes(searchLower) ||
-      patient.bedId.toLowerCase().includes(searchLower) ||
+      patient.nume.toLowerCase().includes(searchLower) ||
+      patient.prenume.toLowerCase().includes(searchLower) ||
+      patient.id_pat.toLowerCase().includes(searchLower) ||
       patient.patientState.toLowerCase().includes(searchLower)
     );
   }).filter(patient => {
@@ -79,7 +79,7 @@ const Patients = () => {
   });
 
   const handleAddPatient = () => {
-    if (!newPatient.lastName || !newPatient.firstName || !newPatient.bedId) {
+    if (!newPatient.nume || !newPatient.prenume || !newPatient.id_pat || !newPatient.CNP) {
       toast({
         title: "Missing Information",
         description: "Please fill out all required fields",
@@ -92,47 +92,49 @@ const Patients = () => {
     
     const patientToAdd: Patient = {
       id: newPatientId,
-      lastName: newPatient.lastName || '',
-      firstName: newPatient.firstName || '',
-      county: newPatient.county || '',
-      town: newPatient.town || '',
-      address: {
-        street: newPatient.address?.street || '',
-        streetNumber: newPatient.address?.streetNumber || '',
-        flatNumber: newPatient.address?.flatNumber || ''
-      },
-      phoneNumber: newPatient.phoneNumber || '',
-      email: newPatient.email || '',
-      profession: newPatient.profession || '',
-      job: newPatient.job || '',
-      patientState: newPatient.patientState as PatientState || 'Stable',
-      bedId: newPatient.bedId || '',
-      sex: newPatient.sex || 'Male',
-      bloodType: newPatient.bloodType || 'O+',
-      admissionDate: newPatient.admissionDate || new Date().toISOString().split('T')[0],
+      CNP: newPatient.CNP,
+      nume: newPatient.nume,
+      prenume: newPatient.prenume,
+      judet: newPatient.judet,
+      localitate: newPatient.localitate,
+      strada: newPatient.strada,
+      nr_strada: parseInt(newPatient.nr_strada) || 0,
+      scara: newPatient.scara,
+      apartament: parseInt(newPatient.apartament) || 0,
+      telefon: newPatient.telefon,
+      email: newPatient.email,
+      profesie: newPatient.profesie,
+      loc_de_munca: newPatient.loc_de_munca,
+      patientState: newPatient.patientState,
+      id_pat: newPatient.id_pat,
+      sex: newPatient.sex,
+      grupa_sange: newPatient.grupa_sange,
+      rh: newPatient.rh,
+      admissionDate: newPatient.admissionDate,
       prescriptions: []
     };
 
     setPatients([...patients, patientToAdd]);
     
     setNewPatient({
-      lastName: '',
-      firstName: '',
-      county: '',
-      town: '',
-      address: {
-        street: '',
-        streetNumber: '',
-        flatNumber: ''
-      },
-      phoneNumber: '',
+      CNP: '',
+      nume: '',
+      prenume: '',
+      judet: '',
+      localitate: '',
+      strada: '',
+      nr_strada: '',
+      scara: '',
+      apartament: '',
+      telefon: '',
       email: '',
-      profession: '',
-      job: '',
+      profesie: '',
+      loc_de_munca: '',
       patientState: 'Stable',
-      bedId: '',
-      sex: 'Male',
-      bloodType: 'O+',
+      id_pat: '',
+      sex: 'M',
+      grupa_sange: 'O',
+      rh: 'pozitiv',
       admissionDate: new Date().toISOString().split('T')[0],
     });
     
@@ -140,7 +142,7 @@ const Patients = () => {
     
     toast({
       title: "Patient Added",
-      description: `${patientToAdd.firstName} ${patientToAdd.lastName} has been added to bed ${patientToAdd.bedId}`
+      description: `${patientToAdd.prenume} ${patientToAdd.nume} has been added to bed ${patientToAdd.id_pat}`
     });
   };
 
@@ -197,19 +199,7 @@ const Patients = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    if (name.startsWith('address.')) {
-      const addressField = name.split('.')[1];
-      setNewPatient(prev => ({
-        ...prev,
-        address: {
-          ...prev.address,
-          [addressField]: value
-        }
-      }));
-    } else {
-      setNewPatient(prev => ({ ...prev, [name]: value }));
-    }
+    setNewPatient(prev => ({ ...prev, [name]: value }));
   };
 
   const handlePrescriptionInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,7 +217,7 @@ const Patients = () => {
   };
 
   const handleRemovePatientFromBed = (patientId: number) => {
-    const patientName = patients.find(p => p.id === patientId)?.firstName + ' ' + patients.find(p => p.id === patientId)?.lastName;
+    const patientName = patients.find(p => p.id === patientId)?.prenume + ' ' + patients.find(p => p.id === patientId)?.nume;
     
     setPatients(patients.filter(p => p.id !== patientId));
     
@@ -242,7 +232,7 @@ const Patients = () => {
       if (patient.id === data.patientId) {
         return {
           ...patient,
-          bedId: data.bedId,
+          id_pat: data.bedId,
           room: data.room
         };
       }
@@ -409,8 +399,8 @@ const Patients = () => {
             <PatientBedAssignment 
               patientId={selectedPatientId}
               patientName={
-                patients.find(p => p.id === selectedPatientId)?.firstName + ' ' + 
-                patients.find(p => p.id === selectedPatientId)?.lastName
+                patients.find(p => p.id === selectedPatientId)?.prenume + ' ' + 
+                patients.find(p => p.id === selectedPatientId)?.nume
               }
               onAssignmentComplete={handleBedAssignment}
               isReceptionist={isReceptionist}

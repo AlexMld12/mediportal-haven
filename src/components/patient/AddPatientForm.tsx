@@ -27,23 +27,23 @@ const AddPatientForm: React.FC<AddPatientFormProps> = ({
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="firstName">First Name *</Label>
+          <Label htmlFor="CNP">CNP (Personal Numeric Code) *</Label>
           <Input
-            id="firstName"
-            name="firstName"
-            value={newPatient.firstName}
+            id="CNP"
+            name="CNP"
+            value={newPatient.CNP}
             onChange={onInputChange}
-            placeholder="First name"
+            placeholder="CNP"
             required
           />
         </div>
         
         <div>
-          <Label htmlFor="lastName">Last Name *</Label>
+          <Label htmlFor="nume">Last Name (Nume) *</Label>
           <Input
-            id="lastName"
-            name="lastName"
-            value={newPatient.lastName}
+            id="nume"
+            name="nume"
+            value={newPatient.nume}
             onChange={onInputChange}
             placeholder="Last name"
             required
@@ -51,33 +51,45 @@ const AddPatientForm: React.FC<AddPatientFormProps> = ({
         </div>
         
         <div>
-          <Label htmlFor="county">County</Label>
+          <Label htmlFor="prenume">First Name (Prenume) *</Label>
           <Input
-            id="county"
-            name="county"
-            value={newPatient.county}
+            id="prenume"
+            name="prenume"
+            value={newPatient.prenume}
+            onChange={onInputChange}
+            placeholder="First name"
+            required
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="judet">County (Judet)</Label>
+          <Input
+            id="judet"
+            name="judet"
+            value={newPatient.judet}
             onChange={onInputChange}
             placeholder="County"
           />
         </div>
         
         <div>
-          <Label htmlFor="town">Town</Label>
+          <Label htmlFor="localitate">City/Town (Localitate)</Label>
           <Input
-            id="town"
-            name="town"
-            value={newPatient.town}
+            id="localitate"
+            name="localitate"
+            value={newPatient.localitate}
             onChange={onInputChange}
-            placeholder="Town"
+            placeholder="City/Town"
           />
         </div>
         
         <div>
-          <Label htmlFor="address.street">Street</Label>
+          <Label htmlFor="strada">Street (Strada)</Label>
           <Input
-            id="address.street"
-            name="address.street"
-            value={newPatient.address?.street}
+            id="strada"
+            name="strada"
+            value={newPatient.strada}
             onChange={onInputChange}
             placeholder="Street"
           />
@@ -85,34 +97,47 @@ const AddPatientForm: React.FC<AddPatientFormProps> = ({
         
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <Label htmlFor="address.streetNumber">Street Number</Label>
+            <Label htmlFor="nr_strada">Street Number (Nr. Strada)</Label>
             <Input
-              id="address.streetNumber"
-              name="address.streetNumber"
-              value={newPatient.address?.streetNumber}
+              id="nr_strada"
+              name="nr_strada"
+              type="number"
+              value={newPatient.nr_strada}
               onChange={onInputChange}
               placeholder="Number"
             />
           </div>
           
           <div>
-            <Label htmlFor="address.flatNumber">Flat Number</Label>
+            <Label htmlFor="scara">Building (Scara)</Label>
             <Input
-              id="address.flatNumber"
-              name="address.flatNumber"
-              value={newPatient.address?.flatNumber}
+              id="scara"
+              name="scara"
+              value={newPatient.scara}
               onChange={onInputChange}
-              placeholder="Flat"
+              placeholder="Building"
             />
           </div>
         </div>
         
         <div>
-          <Label htmlFor="phoneNumber">Phone Number</Label>
+          <Label htmlFor="apartament">Apartment (Apartament)</Label>
           <Input
-            id="phoneNumber"
-            name="phoneNumber"
-            value={newPatient.phoneNumber}
+            id="apartament"
+            name="apartament"
+            type="number"
+            value={newPatient.apartament}
+            onChange={onInputChange}
+            placeholder="Apartment number"
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="telefon">Phone (Telefon)</Label>
+          <Input
+            id="telefon"
+            name="telefon"
+            value={newPatient.telefon}
             onChange={onInputChange}
             placeholder="Phone number"
           />
@@ -131,24 +156,24 @@ const AddPatientForm: React.FC<AddPatientFormProps> = ({
         </div>
         
         <div>
-          <Label htmlFor="profession">Profession</Label>
+          <Label htmlFor="profesie">Profession (Profesie)</Label>
           <Input
-            id="profession"
-            name="profession"
-            value={newPatient.profession}
+            id="profesie"
+            name="profesie"
+            value={newPatient.profesie}
             onChange={onInputChange}
             placeholder="Profession"
           />
         </div>
         
         <div>
-          <Label htmlFor="job">Job</Label>
+          <Label htmlFor="loc_de_munca">Workplace (Loc de Muncă)</Label>
           <Input
-            id="job"
-            name="job"
-            value={newPatient.job}
+            id="loc_de_munca"
+            name="loc_de_munca"
+            value={newPatient.loc_de_munca}
             onChange={onInputChange}
-            placeholder="Job"
+            placeholder="Workplace"
           />
         </div>
         
@@ -172,11 +197,11 @@ const AddPatientForm: React.FC<AddPatientFormProps> = ({
         </div>
         
         <div>
-          <Label htmlFor="bedId">Bed ID *</Label>
+          <Label htmlFor="id_pat">Bed ID (ID Pat) *</Label>
           <Input
-            id="bedId"
-            name="bedId"
-            value={newPatient.bedId}
+            id="id_pat"
+            name="id_pat"
+            value={newPatient.id_pat}
             onChange={onInputChange}
             placeholder="Bed ID"
             required
@@ -193,31 +218,43 @@ const AddPatientForm: React.FC<AddPatientFormProps> = ({
               <SelectValue placeholder="Select sex" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Male">Male</SelectItem>
-              <SelectItem value="Female">Female</SelectItem>
+              <SelectItem value="M">Male</SelectItem>
+              <SelectItem value="F">Female</SelectItem>
               <SelectItem value="Other">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
         <div>
-          <Label htmlFor="bloodType">Blood Type</Label>
+          <Label htmlFor="grupa_sange">Blood Type (Grupa Sange)</Label>
           <Select 
-            value={newPatient.bloodType} 
-            onValueChange={(value) => onSelectChange('bloodType', value)}
+            value={newPatient.grupa_sange} 
+            onValueChange={(value) => onSelectChange('grupa_sange', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select blood type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="A+">A+</SelectItem>
-              <SelectItem value="A-">A-</SelectItem>
-              <SelectItem value="B+">B+</SelectItem>
-              <SelectItem value="B-">B-</SelectItem>
-              <SelectItem value="AB+">AB+</SelectItem>
-              <SelectItem value="AB-">AB-</SelectItem>
-              <SelectItem value="O+">O+</SelectItem>
-              <SelectItem value="O-">O-</SelectItem>
+              <SelectItem value="A">A</SelectItem>
+              <SelectItem value="B">B</SelectItem>
+              <SelectItem value="AB">AB</SelectItem>
+              <SelectItem value="O">O</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div>
+          <Label htmlFor="rh">RH Factor</Label>
+          <Select 
+            value={newPatient.rh} 
+            onValueChange={(value) => onSelectChange('rh', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select RH factor" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pozitiv">Positive</SelectItem>
+              <SelectItem value="negativ">Negative</SelectItem>
             </SelectContent>
           </Select>
         </div>

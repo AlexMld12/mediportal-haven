@@ -4,8 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { 
-  LayoutDashboard, PillIcon, Truck, Clock, Users, Settings, 
-  ChevronLeft, ChevronRight, HospitalIcon, ActivityIcon, UserRound 
+  LayoutDashboard, PillIcon, Users, Settings, 
+  ChevronLeft, ChevronRight, HospitalIcon, UserRound 
 } from 'lucide-react';
 
 type SidebarItemProps = {
@@ -56,8 +56,6 @@ const Sidebar = ({ isMobile, onClose }: SidebarProps) => {
     { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { title: "Patients", icon: UserRound, path: "/dashboard/patients" },
     { title: "Medication", icon: PillIcon, path: "/dashboard/medication" },
-    { title: "Transports", icon: Truck, path: "/dashboard/transports" },
-    { title: "Schedule", icon: Clock, path: "/dashboard/schedule" },
     { title: "Users", icon: Users, path: "/dashboard/users" },
     { title: "Settings", icon: Settings, path: "/dashboard/settings" },
   ];
@@ -113,21 +111,6 @@ const Sidebar = ({ isMobile, onClose }: SidebarProps) => {
               isCollapsed={isCollapsed}
             />
           ))}
-        </div>
-      </div>
-
-      <div className="p-4 border-t border-sidebar-border">
-        <div className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sidebar-foreground",
-          isCollapsed && "justify-center"
-        )}>
-          <ActivityIcon className="text-medical-accent" size={20} />
-          {!isCollapsed && (
-            <div className="text-xs">
-              <div>System Status:</div>
-              <div className="text-green-400 font-medium">All Systems Operational</div>
-            </div>
-          )}
         </div>
       </div>
     </div>

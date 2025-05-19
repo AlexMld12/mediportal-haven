@@ -9,8 +9,6 @@ import ForgotPassword from "./pages/ForgotPassword";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Medication from "./pages/dashboard/Medication";
-import Transports from "./pages/dashboard/Transports";
-import Schedule from "./pages/dashboard/Schedule";
 import Users from "./pages/dashboard/Users";
 import Patients from "./pages/dashboard/Patients";
 import Settings from "./pages/dashboard/Settings";
@@ -36,8 +34,6 @@ const App = () => (
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="medication" element={<Medication />} />
-            <Route path="transports" element={<Transports />} />
-            <Route path="schedule" element={<Schedule />} />
             <Route path="users" element={<Users />} />
             <Route path="patients" element={<Patients />} />
             <Route path="settings" element={<Settings />} />

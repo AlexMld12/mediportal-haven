@@ -4,20 +4,28 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from "@/hooks/use-toast";
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simple authentication check
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     
-    if (!isLoggedIn) {
+    if (!isLoggedIn || !token) {
+      toast({
+        variant: "destructive",
+        title: "Authentication required",
+        description: "Please log in to access this page",
+      });
       navigate('/login');
     }
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);

@@ -32,6 +32,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<number | null>(null);
+  const [isDeletingPatient, setIsDeletingPatient] = useState<number | null>(null);
 
   const fetchPatientDetails = async (patientId: number) => {
     setIsLoading(patientId);
@@ -103,6 +104,65 @@ const PatientTable: React.FC<PatientTableProps> = ({
       });
     } finally {
       setIsLoading(null);
+    }
+  };
+  
+  const handleDeletePatient = async (patient: Patient) => {
+    if (!patient.CNP) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Cannot delete patient without CNP"
+      });
+      return;
+    }
+    
+    setIsDeletingPatient(patient.id);
+    
+    try {
+      const token = localStorage.getItem('token');
+      const authToken = localStorage.getItem('authToken');
+      const tokenType = localStorage.getItem('tokenType') || 'Bearer';
+      const finalToken = authToken || token;
+      
+      if (!finalToken) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "You need to be logged in to delete patients"
+        });
+        return;
+      }
+
+      console.log(`Deleting patient with CNP ${patient.CNP}`);
+      const response = await fetch(`http://132.220.27.51/angajati/medic/${patient.CNP}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `${tokenType} ${finalToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete patient: ${response.status}`);
+      }
+
+      // Call the onRemovePatient callback to update the UI
+      onRemovePatient(patient.id);
+      
+      toast({
+        title: "Patient Removed",
+        description: `${patient.prenume} ${patient.nume} has been removed successfully`
+      });
+    } catch (error) {
+      console.error("Error deleting patient:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete patient. Please try again."
+      });
+    } finally {
+      setIsDeletingPatient(null);
     }
   };
   
@@ -187,11 +247,15 @@ const PatientTable: React.FC<PatientTableProps> = ({
                         variant="outline"
                         size="sm"
                         className="text-red-500 hover:text-red-700"
-                        onClick={() => onRemovePatient(patient.id)}
-                        disabled={!isReceptionist && !isDoctor}
+                        onClick={() => handleDeletePatient(patient)}
+                        disabled={(!isReceptionist && !isDoctor) || isDeletingPatient === patient.id}
                       >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Remove
+                        {isDeletingPatient === patient.id ? 'Deleting...' : (
+                          <>
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Remove
+                          </>
+                        )}
                       </Button>
                     </div>
                   </td>

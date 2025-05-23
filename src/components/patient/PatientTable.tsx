@@ -37,7 +37,10 @@ const PatientTable: React.FC<PatientTableProps> = ({
     setIsLoading(patientId);
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
+      const authToken = localStorage.getItem('authToken');
+      const finalToken = authToken || token;
+      
+      if (!finalToken) {
         toast({
           variant: "destructive",
           title: "Authentication Error",
@@ -50,7 +53,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
       const response = await fetch(`http://132.220.27.51/angajati/medic/${patientId}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${finalToken}`,
           'Content-Type': 'application/json'
         }
       });

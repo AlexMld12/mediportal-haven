@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -139,12 +140,12 @@ const Patients = () => {
       console.log('Sending patient data:', patientData);
       console.log('Using authentication token:', finalToken.substring(0, 10) + '...');
 
-      // Send POST request to the API with the corrected authentication header
+      // Send POST request to the API with BEARER token format instead of TOKEN format
       const response = await fetch('http://132.220.27.51/angajati/medic/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${finalToken}`
+          'Authorization': `Bearer ${finalToken}`
         },
         body: JSON.stringify(patientData)
       });

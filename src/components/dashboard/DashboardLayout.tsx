@@ -21,6 +21,13 @@ const DashboardLayout = () => {
     // Either token should be valid
     const hasValidToken = !!token || !!authToken;
     
+    console.log("Authentication check:", {
+      token: token ? `${token.substring(0, 10)}... (${token.length} chars)` : 'Not found',
+      authToken: authToken ? `${authToken.substring(0, 10)}... (${authToken.length} chars)` : 'Not found',
+      isLoggedIn: isLoggedIn,
+      hasValidToken: hasValidToken
+    });
+    
     if (!isLoggedIn || !hasValidToken) {
       toast({
         variant: "destructive",

@@ -62,7 +62,6 @@ const Login = () => {
       console.log("Starting authentication with HTTP endpoint");
       
       // Connect to the external authentication service using HTTP
-      // Note: For this to work in production, you would need a proxy or backend service
       const response = await fetch('http://132.220.27.51/login', {
         method: 'POST',
         headers: {
@@ -80,6 +79,13 @@ const Login = () => {
       }
 
       const data = await response.json();
+      console.log("Auth success data received:", data);
+      
+      if (!data.token) {
+        console.error("No token received in response:", data);
+        throw new Error('No authentication token received from server');
+      }
+      
       console.log("Auth success data:", {
         tokenReceived: !!data.token,
         tokenLength: data.token ? data.token.length : 0,
@@ -95,6 +101,15 @@ const Login = () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('isLoggedIn', 'true');
+      
+      // Verify token was stored correctly
+      const storedToken = localStorage.getItem('token');
+      const storedAuthToken = localStorage.getItem('authToken');
+      console.log("Tokens stored in localStorage:", {
+        token: storedToken ? storedToken.substring(0, 10) + '...' : 'Not stored',
+        authToken: storedAuthToken ? storedAuthToken.substring(0, 10) + '...' : 'Not stored',
+        isLoggedIn: localStorage.getItem('isLoggedIn')
+      });
       
       if (formData.rememberMe) {
         localStorage.setItem('username', formData.username);

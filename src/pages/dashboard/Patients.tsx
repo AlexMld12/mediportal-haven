@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ import type { UserRole } from '@/utils/permissions';
 
 const Patients = () => {
   const { toast } = useToast();
-  const [patients, setPatients] = useState<Patient[]>(SAMPLE_PATIENTS);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
@@ -25,6 +24,7 @@ const Patients = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingPatients, setIsFetchingPatients] = useState(false);
   
   // Define the state for new patient
   const [newPatient, setNewPatient] = useState<NewPatient>({
@@ -64,6 +64,83 @@ const Patients = () => {
   const currentUserRole: UserRole = 'Receptionist';
   const isReceptionist = hasPermission(currentUserRole, 'assign_beds');
   const isDoctor = hasPermission(currentUserRole, 'manage_patients');
+  
+  // Fetch all patients from API on component mount
+  useEffect(() => {
+    fetchAllPatients();
+  }, []);
+
+  // Function to fetch all patients from the API
+  const fetchAllPatients = async () => {
+    setIsFetchingPatients(true);
+    try {
+      const token = localStorage.getItem('token');
+      const authToken = localStorage.getItem('authToken');
+      const tokenType = localStorage.getItem('tokenType') || 'Bearer';
+      const finalToken = authToken || token;
+      
+      if (!finalToken) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "You need to be logged in to view patients"
+        });
+        return;
+      }
+
+      console.log('Fetching patients from API...');
+      const response = await fetch('http://132.220.27.51/angajati/medic/', {
+        method: 'GET',
+        headers: {
+          'Authorization': `${tokenType} ${finalToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch patients: ${response.status}`);
+      }
+
+      const data: APIPatient[] = await response.json();
+      console.log('Patients data received:', data);
+
+      // Convert API patients to our Patient type
+      const formattedPatients: Patient[] = data.map((patient, index) => ({
+        id: index + 1, // Generate sequential IDs
+        CNP: patient.CNP,
+        nume: patient.nume,
+        prenume: patient.prenume,
+        judet: patient.judet,
+        localitate: patient.localitate,
+        strada: patient.strada,
+        nr_strada: patient.nr_strada,
+        scara: patient.scara,
+        apartament: patient.apartament,
+        telefon: patient.telefon,
+        email: patient.email,
+        profesie: patient.profesie,
+        loc_de_munca: patient.loc_de_munca,
+        sex: patient.sex as 'M' | 'F' | 'Other',
+        grupa_sange: patient.grupa_sange,
+        rh: patient.rh as 'pozitiv' | 'negativ',
+        id_pat: patient.id_pat,
+        patientState: 'Stable' as PatientState, // Default state since not available in API
+        admissionDate: new Date().toISOString().split('T')[0], // Default date since not available in API
+        prescriptions: [] // No prescriptions in API response
+      }));
+
+      setPatients(formattedPatients);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch patients. Please try again."
+      });
+    } finally {
+      setIsFetchingPatients(false);
+    }
+  };
   
   const filteredPatients = patients.filter(patient => {
     const searchLower = searchTerm.toLowerCase();
@@ -302,13 +379,14 @@ const Patients = () => {
   };
 
   const handleRemovePatientFromBed = (patientId: number) => {
-    const patientName = patients.find(p => p.id === patientId)?.prenume + ' ' + patients.find(p => p.id === patientId)?.nume;
+    const patientToRemove = patients.find(p => p.id === patientId);
+    if (!patientToRemove) return;
     
     setPatients(patients.filter(p => p.id !== patientId));
     
     toast({
       title: "Patient Removed",
-      description: `${patientName} has been removed from their bed`
+      description: `${patientToRemove.prenume} ${patientToRemove.nume} has been removed from their bed`
     });
   };
 
@@ -365,9 +443,14 @@ const Patients = () => {
             <TabsTrigger value="critical">Critical</TabsTrigger>
             <TabsTrigger value="stable">Stable</TabsTrigger>
           </TabsList>
-          <Button onClick={() => setIsAddPatientModalOpen(true)} disabled={!isReceptionist && !isDoctor}>
-            Add New Patient
-          </Button>
+          <div className="flex space-x-2">
+            <Button onClick={fetchAllPatients} variant="outline" disabled={isFetchingPatients}>
+              {isFetchingPatients ? 'Refreshing...' : 'Refresh Patients'}
+            </Button>
+            <Button onClick={() => setIsAddPatientModalOpen(true)} disabled={!isReceptionist && !isDoctor}>
+              Add New Patient
+            </Button>
+          </div>
         </div>
         
         <TabsContent value="all" className="mt-0">
@@ -394,14 +477,24 @@ const Patients = () => {
                 />
               </div>
               
-              <PatientTable 
-                patients={filteredPatients}
-                onViewPatient={handleViewPatient}
-                onPrescribe={openPrescriptionModal}
-                onAssignBed={openBedAssignmentModal}
-                onRemovePatient={handleRemovePatientFromBed}
-                userRole={currentUserRole}
-              />
+              {isFetchingPatients ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Loading patients...</p>
+                </div>
+              ) : patients.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No patients found. Add a new patient or refresh the list.</p>
+                </div>
+              ) : (
+                <PatientTable 
+                  patients={filteredPatients}
+                  onViewPatient={handleViewPatient}
+                  onPrescribe={openPrescriptionModal}
+                  onAssignBed={openBedAssignmentModal}
+                  onRemovePatient={handleRemovePatientFromBed}
+                  userRole={currentUserRole}
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>

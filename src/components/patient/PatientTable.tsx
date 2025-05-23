@@ -2,9 +2,17 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, FileText, Home, Trash2 } from "lucide-react";
+import { Eye, FileText, Home, Trash2, RefreshCw } from "lucide-react";
 import { hasPermission } from '@/utils/permissions';
 import PatientDetailsModal from './PatientDetailsModal';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { Patient, APIPatient } from '@/types/patient';
 import type { UserRole } from '@/utils/permissions';
 
@@ -52,7 +60,13 @@ const PatientTable: React.FC<PatientTableProps> = ({
       }
 
       console.log(`Fetching details for patient ID ${patientId}`);
-      const response = await fetch(`http://132.220.27.51/angajati/medic/${patientId}`, {
+      const patient = patients.find(p => p.id === patientId);
+      
+      if (!patient || !patient.CNP) {
+        throw new Error("Patient not found or missing CNP");
+      }
+      
+      const response = await fetch(`http://132.220.27.51/angajati/medic/${patient.CNP}`, {
         method: 'GET',
         headers: {
           'Authorization': `${tokenType} ${finalToken}`,
@@ -168,27 +182,26 @@ const PatientTable: React.FC<PatientTableProps> = ({
   
   return (
     <>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-3 px-4 font-medium">Name</th>
-              <th className="text-left py-3 px-4 font-medium">Room</th>
-              <th className="text-left py-3 px-4 font-medium">Bed ID</th>
-              <th className="text-left py-3 px-4 font-medium">Status</th>
-              <th className="text-left py-3 px-4 font-medium">Blood Type</th>
-              <th className="text-left py-3 px-4 font-medium">Admission Date</th>
-              <th className="text-left py-3 px-4 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Room</TableHead>
+              <TableHead>Bed ID</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Blood Type</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {patients.length > 0 ? (
               patients.map((patient) => (
-                <tr key={patient.id} className="border-b hover:bg-gray-50">
-                  <td className="py-3 px-4">{patient.nume}, {patient.prenume}</td>
-                  <td className="py-3 px-4">{patient.room || 'Not assigned'}</td>
-                  <td className="py-3 px-4">{patient.id_pat}</td>
-                  <td className="py-3 px-4">
+                <TableRow key={patient.id}>
+                  <TableCell className="font-medium">{patient.nume}, {patient.prenume}</TableCell>
+                  <TableCell>{patient.room || 'Not assigned'}</TableCell>
+                  <TableCell>{patient.id_pat || 'N/A'}</TableCell>
+                  <TableCell>
                     <span className={`inline-block px-2 py-1 rounded-full text-xs ${
                       patient.patientState === 'Critical' || patient.patientState === 'Emergency'
                         ? 'bg-red-100 text-red-800'
@@ -202,10 +215,9 @@ const PatientTable: React.FC<PatientTableProps> = ({
                     }`}>
                       {patient.patientState}
                     </span>
-                  </td>
-                  <td className="py-3 px-4">{patient.grupa_sange}</td>
-                  <td className="py-3 px-4">{patient.admissionDate}</td>
-                  <td className="py-3 px-4">
+                  </TableCell>
+                  <TableCell>{patient.grupa_sange || 'Unknown'}</TableCell>
+                  <TableCell>
                     <div className="flex space-x-2">
                       <Button 
                         variant="outline" 
@@ -213,7 +225,12 @@ const PatientTable: React.FC<PatientTableProps> = ({
                         onClick={() => fetchPatientDetails(patient.id)}
                         disabled={isLoading === patient.id}
                       >
-                        {isLoading === patient.id ? 'Loading...' : (
+                        {isLoading === patient.id ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
                           <>
                             <Eye className="w-4 h-4 mr-1" />
                             View
@@ -243,33 +260,40 @@ const PatientTable: React.FC<PatientTableProps> = ({
                         </Button>
                       )}
                       
-                      <Button 
-                        variant="outline"
-                        size="sm"
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => handleDeletePatient(patient)}
-                        disabled={(!isReceptionist && !isDoctor) || isDeletingPatient === patient.id}
-                      >
-                        {isDeletingPatient === patient.id ? 'Deleting...' : (
-                          <>
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Remove
-                          </>
-                        )}
-                      </Button>
+                      {(isReceptionist || isDoctor) && (
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleDeletePatient(patient)}
+                          disabled={isDeletingPatient === patient.id}
+                        >
+                          {isDeletingPatient === patient.id ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                              Deleting...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Remove
+                            </>
+                          )}
+                        </Button>
+                      )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td colSpan={7} className="py-6 text-center text-gray-500">
-                  No patients found matching your search criteria
-                </td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  No patients found
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <PatientDetailsModal 

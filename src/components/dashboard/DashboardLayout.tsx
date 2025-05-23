@@ -16,6 +16,7 @@ const DashboardLayout = () => {
     // Check if user is logged in with consistent token names
     const token = localStorage.getItem('token');
     const authToken = localStorage.getItem('authToken'); 
+    const tokenType = localStorage.getItem('tokenType');
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     
     // Either token should be valid
@@ -24,6 +25,7 @@ const DashboardLayout = () => {
     console.log("Authentication check:", {
       token: token ? `${token.substring(0, 10)}... (${token.length} chars)` : 'Not found',
       authToken: authToken ? `${authToken.substring(0, 10)}... (${authToken.length} chars)` : 'Not found',
+      tokenType: tokenType || 'Not found',
       isLoggedIn: isLoggedIn,
       hasValidToken: hasValidToken
     });
@@ -41,6 +43,11 @@ const DashboardLayout = () => {
         localStorage.setItem('authToken', token);
       } else if (authToken && !token) {
         localStorage.setItem('token', authToken);
+      }
+      
+      // Ensure token type exists
+      if (!tokenType) {
+        localStorage.setItem('tokenType', 'Bearer');
       }
     }
   }, [navigate, toast]);

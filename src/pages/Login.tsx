@@ -81,15 +81,16 @@ const Login = () => {
       const data = await response.json();
       console.log("Auth success data received:", data);
       
-      if (!data.token) {
-        console.error("No token received in response:", data);
+      if (!data.access_token) {
+        console.error("No access_token received in response:", data);
         throw new Error('No authentication token received from server');
       }
       
       console.log("Auth success data:", {
-        tokenReceived: !!data.token,
-        tokenLength: data.token ? data.token.length : 0,
-        tokenPreview: data.token ? data.token.substring(0, 10) + '...' : 'No token'
+        tokenReceived: !!data.access_token,
+        tokenLength: data.access_token ? data.access_token.length : 0,
+        tokenPreview: data.access_token ? data.access_token.substring(0, 10) + '...' : 'No token',
+        tokenType: data.token_type || 'none'
       });
       
       // Clear any existing tokens first
@@ -98,8 +99,9 @@ const Login = () => {
       localStorage.removeItem('isLoggedIn');
       
       // Store the JWT token consistently in both places
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('authToken', data.access_token);
+      localStorage.setItem('tokenType', data.token_type || 'bearer'); // Store token type too
       localStorage.setItem('isLoggedIn', 'true');
       
       // Verify token was stored correctly
@@ -108,6 +110,7 @@ const Login = () => {
       console.log("Tokens stored in localStorage:", {
         token: storedToken ? storedToken.substring(0, 10) + '...' : 'Not stored',
         authToken: storedAuthToken ? storedAuthToken.substring(0, 10) + '...' : 'Not stored',
+        tokenType: localStorage.getItem('tokenType'),
         isLoggedIn: localStorage.getItem('isLoggedIn')
       });
       

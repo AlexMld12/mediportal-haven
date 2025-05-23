@@ -38,6 +38,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
     try {
       const token = localStorage.getItem('token');
       const authToken = localStorage.getItem('authToken');
+      const tokenType = localStorage.getItem('tokenType') || 'Bearer';
       const finalToken = authToken || token;
       
       if (!finalToken) {
@@ -53,7 +54,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
       const response = await fetch(`http://132.220.27.51/angajati/medic/${patientId}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${finalToken}`,
+          'Authorization': `${tokenType} ${finalToken}`,
           'Content-Type': 'application/json'
         }
       });

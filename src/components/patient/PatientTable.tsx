@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -39,86 +38,12 @@ const PatientTable: React.FC<PatientTableProps> = ({
   
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState<number | null>(null);
   const [isDeletingPatient, setIsDeletingPatient] = useState<number | null>(null);
 
-  const handleViewPatient = async (patient: Patient) => {
-    if (!patient.CNP) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Patient CNP is missing. Cannot fetch details."
-      });
-      return;
-    }
-
-    setIsLoading(patient.id);
-    try {
-      const token = localStorage.getItem('token');
-      const authToken = localStorage.getItem('authToken');
-      const tokenType = localStorage.getItem('tokenType') || 'Bearer';
-      const finalToken = authToken || token;
-      
-      if (!finalToken) {
-        toast({
-          variant: "destructive",
-          title: "Authentication Error",
-          description: "You need to be logged in to view patient details"
-        });
-        return;
-      }
-
-      console.log(`Fetching details for patient CNP: ${patient.CNP}`);
-      
-      const response = await fetch(`http://132.220.27.51/angajati/medic/${patient.CNP}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `${tokenType} ${finalToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch patient details: ${response.status}`);
-      }
-
-      const apiPatientData: APIPatient = await response.json();
-      console.log("Fetched patient data:", apiPatientData);
-      
-      // Combine API data with current patient data
-      const fullPatientData: Patient = {
-        ...patient,
-        CNP: apiPatientData.CNP,
-        nume: apiPatientData.nume,
-        prenume: apiPatientData.prenume,
-        judet: apiPatientData.judet,
-        localitate: apiPatientData.localitate,
-        strada: apiPatientData.strada,
-        nr_strada: apiPatientData.nr_strada,
-        scara: apiPatientData.scara,
-        apartament: apiPatientData.apartament,
-        telefon: apiPatientData.telefon,
-        email: apiPatientData.email,
-        profesie: apiPatientData.profesie,
-        loc_de_munca: apiPatientData.loc_de_munca,
-        sex: apiPatientData.sex as 'M' | 'F' | 'Other',
-        grupa_sange: apiPatientData.grupa_sange,
-        rh: apiPatientData.rh as 'pozitiv' | 'negativ',
-        id_pat: apiPatientData.id_pat
-      };
-      
-      setSelectedPatient(fullPatientData);
-      setIsDetailModalOpen(true);
-    } catch (error) {
-      console.error("Error fetching patient details:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch patient details. Please try again."
-      });
-    } finally {
-      setIsLoading(null);
-    }
+  const handleViewPatient = (patient: Patient) => {
+    console.log("Viewing patient data:", patient);
+    setSelectedPatient(patient);
+    setIsDetailModalOpen(true);
   };
   
   const handleDeletePatient = async (patient: Patient) => {
@@ -222,19 +147,9 @@ const PatientTable: React.FC<PatientTableProps> = ({
                         variant="outline" 
                         size="sm"
                         onClick={() => handleViewPatient(patient)}
-                        disabled={isLoading === patient.id}
                       >
-                        {isLoading === patient.id ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
-                            Loading...
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
-                          </>
-                        )}
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
                       </Button>
                       
                       {isDoctor && (

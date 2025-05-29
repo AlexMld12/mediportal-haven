@@ -42,8 +42,17 @@ const PatientTable: React.FC<PatientTableProps> = ({
   const [isLoading, setIsLoading] = useState<number | null>(null);
   const [isDeletingPatient, setIsDeletingPatient] = useState<number | null>(null);
 
-  const fetchPatientDetails = async (patientId: number) => {
-    setIsLoading(patientId);
+  const handleViewPatient = async (patient: Patient) => {
+    if (!patient.CNP) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Patient CNP is missing. Cannot fetch details."
+      });
+      return;
+    }
+
+    setIsLoading(patient.id);
     try {
       const token = localStorage.getItem('token');
       const authToken = localStorage.getItem('authToken');
@@ -59,12 +68,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
         return;
       }
 
-      console.log(`Fetching details for patient ID ${patientId}`);
-      const patient = patients.find(p => p.id === patientId);
-      
-      if (!patient || !patient.CNP) {
-        throw new Error("Patient not found or missing CNP");
-      }
+      console.log(`Fetching details for patient CNP: ${patient.CNP}`);
       
       const response = await fetch(`http://132.220.27.51/angajati/medic/${patient.CNP}`, {
         method: 'GET',
@@ -78,37 +82,33 @@ const PatientTable: React.FC<PatientTableProps> = ({
         throw new Error(`Failed to fetch patient details: ${response.status}`);
       }
 
-      const data: APIPatient = await response.json();
-      console.log("Patient API data:", data);
+      const apiPatientData: APIPatient = await response.json();
+      console.log("Fetched patient data:", apiPatientData);
       
-      // Find the patient in the current list to get additional data
-      const currentPatient = patients.find(p => p.id === patientId);
+      // Combine API data with current patient data
+      const fullPatientData: Patient = {
+        ...patient,
+        CNP: apiPatientData.CNP,
+        nume: apiPatientData.nume,
+        prenume: apiPatientData.prenume,
+        judet: apiPatientData.judet,
+        localitate: apiPatientData.localitate,
+        strada: apiPatientData.strada,
+        nr_strada: apiPatientData.nr_strada,
+        scara: apiPatientData.scara,
+        apartament: apiPatientData.apartament,
+        telefon: apiPatientData.telefon,
+        email: apiPatientData.email,
+        profesie: apiPatientData.profesie,
+        loc_de_munca: apiPatientData.loc_de_munca,
+        sex: apiPatientData.sex as 'M' | 'F' | 'Other',
+        grupa_sange: apiPatientData.grupa_sange,
+        rh: apiPatientData.rh as 'pozitiv' | 'negativ',
+        id_pat: apiPatientData.id_pat
+      };
       
-      if (currentPatient) {
-        const fullPatientData: Patient = {
-          ...currentPatient,
-          CNP: data.CNP,
-          nume: data.nume,
-          prenume: data.prenume,
-          judet: data.judet,
-          localitate: data.localitate,
-          strada: data.strada,
-          nr_strada: data.nr_strada,
-          scara: data.scara,
-          apartament: data.apartament,
-          telefon: data.telefon,
-          email: data.email,
-          profesie: data.profesie,
-          loc_de_munca: data.loc_de_munca,
-          sex: data.sex as 'M' | 'F' | 'Other',
-          grupa_sange: data.grupa_sange,
-          rh: data.rh as 'pozitiv' | 'negativ',
-          id_pat: data.id_pat
-        };
-        
-        setSelectedPatient(fullPatientData);
-        setIsDetailModalOpen(true);
-      }
+      setSelectedPatient(fullPatientData);
+      setIsDetailModalOpen(true);
     } catch (error) {
       console.error("Error fetching patient details:", error);
       toast({
@@ -161,7 +161,6 @@ const PatientTable: React.FC<PatientTableProps> = ({
         throw new Error(`Failed to delete patient: ${response.status}`);
       }
 
-      // Call the onRemovePatient callback to update the UI
       onRemovePatient(patient.id);
       
       toast({
@@ -222,7 +221,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => fetchPatientDetails(patient.id)}
+                        onClick={() => handleViewPatient(patient)}
                         disabled={isLoading === patient.id}
                       >
                         {isLoading === patient.id ? (

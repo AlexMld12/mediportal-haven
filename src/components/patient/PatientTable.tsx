@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, FileText, Home, Trash2, RefreshCw } from "lucide-react";
+import { Eye, FileText, Edit, Trash2, RefreshCw } from "lucide-react";
 import { hasPermission } from '@/utils/permissions';
 import PatientDetailsModal from './PatientDetailsModal';
+import EditPatientForm from './EditPatientForm';
 import {
   Table,
   TableBody,
@@ -19,7 +20,7 @@ type PatientTableProps = {
   patients: Patient[];
   onViewPatient: (patientId: number) => void;
   onPrescribe: (patientId: number) => void;
-  onAssignBed: (patientId: number) => void;
+  onPatientUpdate: (updatedPatient: Patient) => void;
   onRemovePatient: (patientId: number) => void;
   userRole: UserRole;
 };
@@ -28,7 +29,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
   patients,
   onViewPatient,
   onPrescribe,
-  onAssignBed,
+  onPatientUpdate,
   onRemovePatient,
   userRole
 }) => {
@@ -38,12 +39,25 @@ const PatientTable: React.FC<PatientTableProps> = ({
   
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeletingPatient, setIsDeletingPatient] = useState<number | null>(null);
 
   const handleViewPatient = (patient: Patient) => {
     console.log("Viewing patient data:", patient);
     setSelectedPatient(patient);
     setIsDetailModalOpen(true);
+  };
+
+  const handleEditPatient = (patient: Patient) => {
+    console.log("Editing patient data:", patient);
+    setSelectedPatient(patient);
+    setIsEditModalOpen(true);
+  };
+
+  const handlePatientUpdate = (updatedPatient: Patient) => {
+    onPatientUpdate(updatedPatient);
+    setIsEditModalOpen(false);
+    setSelectedPatient(null);
   };
   
   const handleDeletePatient = async (patient: Patient) => {
@@ -163,14 +177,14 @@ const PatientTable: React.FC<PatientTableProps> = ({
                         </Button>
                       )}
                       
-                      {isReceptionist && (
+                      {(isReceptionist || isDoctor) && (
                         <Button 
                           variant="outline"
                           size="sm"
-                          onClick={() => onAssignBed(patient.id)}
+                          onClick={() => handleEditPatient(patient)}
                         >
-                          <Home className="w-4 h-4 mr-1" />
-                          Assign Bed
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
                         </Button>
                       )}
                       
@@ -215,6 +229,16 @@ const PatientTable: React.FC<PatientTableProps> = ({
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
       />
+
+      {isEditModalOpen && selectedPatient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <EditPatientForm 
+            patient={selectedPatient}
+            onPatientUpdate={handlePatientUpdate}
+            onCancel={() => setIsEditModalOpen(false)}
+          />
+        </div>
+      )}
     </>
   );
 };

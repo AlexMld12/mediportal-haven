@@ -378,6 +378,17 @@ const Patients = () => {
     setIsPrescriptionModalOpen(true);
   };
 
+  const handlePatientUpdate = (updatedPatient: Patient) => {
+    setPatients(patients.map(patient => 
+      patient.id === updatedPatient.id ? updatedPatient : patient
+    ));
+    
+    toast({
+      title: "Patient Updated",
+      description: `${updatedPatient.prenume} ${updatedPatient.nume} has been updated successfully`
+    });
+  };
+
   const handleRemovePatientFromBed = (patientId: number) => {
     const patientToRemove = patients.find(p => p.id === patientId);
     if (!patientToRemove) return;
@@ -490,7 +501,7 @@ const Patients = () => {
                   patients={filteredPatients}
                   onViewPatient={handleViewPatient}
                   onPrescribe={openPrescriptionModal}
-                  onAssignBed={openBedAssignmentModal}
+                  onPatientUpdate={handlePatientUpdate}
                   onRemovePatient={handleRemovePatientFromBed}
                   userRole={currentUserRole}
                 />
@@ -514,7 +525,7 @@ const Patients = () => {
                 )}
                 onViewPatient={handleViewPatient}
                 onPrescribe={openPrescriptionModal}
-                onAssignBed={openBedAssignmentModal}
+                onPatientUpdate={handlePatientUpdate}
                 onRemovePatient={handleRemovePatientFromBed}
                 userRole={currentUserRole}
               />
@@ -537,7 +548,7 @@ const Patients = () => {
                 )}
                 onViewPatient={handleViewPatient}
                 onPrescribe={openPrescriptionModal}
-                onAssignBed={openBedAssignmentModal}
+                onPatientUpdate={handlePatientUpdate}
                 onRemovePatient={handleRemovePatientFromBed}
                 userRole={currentUserRole}
               />

@@ -104,7 +104,7 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
 
 const getCurrentUserRole = (): UserRole | undefined => {
   // Try to get the role from localStorage (set at login)
-  const role = localStorage.getItem("role");
+  const role = localStorage.getItem("userRole");
   if (!role) return undefined;
   return role as UserRole;
 };

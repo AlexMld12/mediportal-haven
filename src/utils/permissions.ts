@@ -1,7 +1,6 @@
-
 // Define all available permissions in the system
-export type Permission = 
-  | 'manage_users' 
+export type Permission =
+  | 'manage_users'
   | 'manage_patients'
   | 'view_patients'
   | 'add_patients'
@@ -12,46 +11,46 @@ export type Permission =
   | 'view_logs';
 
 // Define all available roles
-export type UserRole = 
-  | 'Administrator' 
-  | 'Doctor' 
-  | 'Nurse' 
-  | 'Pharmacist' 
+export type UserRole =
+  | 'Administrator'
+  | 'Doctor'
+  | 'Nurse'
+  | 'Pharmacist'
   | 'Transport Tech'
   | 'Receptionist';
 
 // Permissions assigned to each role
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   'Administrator': [
-    'manage_users', 
-    'manage_patients', 
+    'manage_users',
+    'manage_patients',
     'view_patients',
     'add_patients',
     'assign_beds',
-    'manage_medications', 
+    'manage_medications',
     'view_medications',
-    'manage_transports', 
+    'manage_transports',
     'view_logs'
   ],
   'Doctor': [
-    'manage_patients', 
+    'manage_patients',
     'view_patients',
-    'manage_medications', 
+    'manage_medications',
     'view_medications',
     'view_logs'
   ],
   'Nurse': [
-    'view_patients', 
-    'view_medications', 
+    'view_patients',
+    'view_medications',
     'view_logs'
   ],
   'Pharmacist': [
-    'manage_medications', 
+    'manage_medications',
     'view_medications',
     'view_logs'
   ],
   'Transport Tech': [
-    'manage_transports', 
+    'manage_transports',
     'view_logs'
   ],
   'Receptionist': [
@@ -76,3 +75,30 @@ export const hasAnyPermission = (role: UserRole, permissions: Permission[]): boo
 export const hasAllPermissions = (role: UserRole, permissions: Permission[]): boolean => {
   return permissions.every(permission => hasPermission(role, permission));
 };
+
+// Backend <-> Frontend role mapping
+export const BACKEND_TO_FRONTEND_ROLE: Record<string, UserRole> = {
+  M: 'Doctor',
+  R: 'Receptionist',
+  F: 'Pharmacist',
+  A: 'Administrator',
+  D: 'Nurse',
+  // Add more if backend adds more roles
+};
+
+export const FRONTEND_TO_BACKEND_ROLE: Record<UserRole, string> = {
+  'Doctor': 'M',
+  'Receptionist': 'R',
+  'Pharmacist': 'F',
+  'Administrator': 'A',
+  'Nurse': 'D',
+  'Transport Tech': 'T', // Only if backend supports this
+};
+
+export function backendRoleToFrontend(backendRole: string): UserRole | undefined {
+  return BACKEND_TO_FRONTEND_ROLE[backendRole];
+}
+
+export function frontendRoleToBackend(frontendRole: UserRole): string | undefined {
+  return FRONTEND_TO_BACKEND_ROLE[frontendRole];
+}

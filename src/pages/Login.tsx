@@ -1,17 +1,25 @@
-
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { jwtDecode } from "jwt-decode";
+import { backendRoleToFrontend } from "@/utils/permissions";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    username: "",
+    password: "",
     rememberMe: false,
   });
   const [error, setError] = useState<string | null>(null);
@@ -33,21 +41,21 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // Validate form
     if (!formData.username.trim() || !formData.password.trim()) {
-      setError('All fields are required');
+      setError("All fields are required");
       setIsLoading(false);
       return;
     }
 
     console.log("Attempting to connect to authentication service:", {
-      url: 'http://132.220.27.51/login',
+      url: "http://132.220.27.51/login",
       credentials: {
         username: formData.username,
         // Not logging the actual password for security
-        passwordLength: formData.password.length
-      }
+        passwordLength: formData.password.length,
+      },
     });
 
     // Create request data
@@ -60,73 +68,98 @@ const Login = () => {
       // Using a proxy approach to avoid mixed content issues
       // The browser prevents direct HTTP requests from HTTPS pages for security
       console.log("Starting authentication with HTTP endpoint");
-      
+
       // Connect to the external authentication service using HTTP
-      const response = await fetch('http://132.220.27.51/login', {
-        method: 'POST',
+      const response = await fetch("http://132.220.27.51/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(requestData),
       });
 
       console.log("Auth response status:", response.status);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         console.log("Auth error data:", errorData);
-        throw new Error(errorData.message || 'Authentication failed');
+        throw new Error(errorData.message || "Authentication failed");
       }
 
       const data = await response.json();
       console.log("Auth success data received:", data);
-      
+
       if (!data.access_token) {
         console.error("No access_token received in response:", data);
-        throw new Error('No authentication token received from server');
+        throw new Error("No authentication token received from server");
       }
-      
+
       console.log("Auth success data:", {
         tokenReceived: !!data.access_token,
         tokenLength: data.access_token ? data.access_token.length : 0,
-        tokenPreview: data.access_token ? data.access_token.substring(0, 10) + '...' : 'No token',
-        tokenType: data.token_type || 'none'
+        tokenPreview: data.access_token
+          ? data.access_token.substring(0, 10) + "..."
+          : "No token",
+        tokenType: data.token_type || "none",
       });
-      
+
       // Clear any existing tokens first
-      localStorage.removeItem('token');
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('isLoggedIn');
-      
+      localStorage.removeItem("token");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("isLoggedIn");
+
       // Store the JWT token consistently in both places
-      localStorage.setItem('token', data.access_token);
-      localStorage.setItem('authToken', data.access_token);
-      localStorage.setItem('tokenType', data.token_type || 'bearer'); // Store token type too
-      localStorage.setItem('isLoggedIn', 'true');
-      
-      // Verify token was stored correctly
-      const storedToken = localStorage.getItem('token');
-      const storedAuthToken = localStorage.getItem('authToken');
-      console.log("Tokens stored in localStorage:", {
-        token: storedToken ? storedToken.substring(0, 10) + '...' : 'Not stored',
-        authToken: storedAuthToken ? storedAuthToken.substring(0, 10) + '...' : 'Not stored',
-        tokenType: localStorage.getItem('tokenType'),
-        isLoggedIn: localStorage.getItem('isLoggedIn')
-      });
-      
-      if (formData.rememberMe) {
-        localStorage.setItem('username', formData.username);
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("authToken", data.access_token);
+      localStorage.setItem("tokenType", data.token_type || "bearer"); // Store token type too
+      localStorage.setItem("isLoggedIn", "true");
+
+      // Decode the JWT to extract the backend role and map it to frontend UserRole
+      try {
+        const decoded: any = jwtDecode(data.access_token);
+        const backendRole = decoded.rol;
+        const frontendRole = backendRoleToFrontend(backendRole);
+        if (frontendRole) {
+          localStorage.setItem("userRole", frontendRole);
+        } else {
+          localStorage.removeItem("userRole");
+        }
+      } catch (decodeError) {
+        console.error("Failed to decode JWT or map role:", decodeError);
+        localStorage.removeItem("userRole");
       }
-      
+
+      // Verify token was stored correctly
+      const storedToken = localStorage.getItem("token");
+      const storedAuthToken = localStorage.getItem("authToken");
+      console.log("Tokens stored in localStorage:", {
+        token: storedToken
+          ? storedToken.substring(0, 10) + "..."
+          : "Not stored",
+        authToken: storedAuthToken
+          ? storedAuthToken.substring(0, 10) + "..."
+          : "Not stored",
+        tokenType: localStorage.getItem("tokenType"),
+        isLoggedIn: localStorage.getItem("isLoggedIn"),
+      });
+
+      if (formData.rememberMe) {
+        localStorage.setItem("username", formData.username);
+      }
+
       toast({
         title: "Login successful",
         description: "Welcome to MediPort",
       });
-      
-      navigate('/dashboard');
+
+      navigate("/dashboard");
     } catch (err) {
-      console.error('Login error details:', err);
-      setError(err instanceof Error ? err.message : 'Authentication failed. Please try again.');
+      console.error("Login error details:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Authentication failed. Please try again."
+      );
       toast({
         variant: "destructive",
         title: "Authentication failed",
@@ -146,7 +179,7 @@ const Login = () => {
             Robotic Medication Transport System
           </p>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Login to your account</CardTitle>
@@ -161,7 +194,7 @@ const Login = () => {
                   {error}
                 </div>
               )}
-              
+
               <div className="space-y-2">
                 <Label htmlFor="username">Username / Email</Label>
                 <Input
@@ -174,11 +207,14 @@ const Login = () => {
                   autoComplete="username"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="password">Password</Label>
-                  <Link to="/forgot-password" className="text-sm text-medical-primary hover:underline">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-medical-primary hover:underline"
+                  >
                     Forgot password?
                   </Link>
                 </div>
@@ -192,30 +228,34 @@ const Login = () => {
                   autoComplete="current-password"
                 />
               </div>
-              
+
               <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="rememberMe" 
+                <Checkbox
+                  id="rememberMe"
                   checked={formData.rememberMe}
                   onCheckedChange={handleCheckboxChange}
                 />
-                <Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor="rememberMe"
+                  className="text-sm font-normal cursor-pointer"
+                >
                   Remember me for 30 days
                 </Label>
               </div>
-              
-              <Button 
-                type="submit" 
+
+              <Button
+                type="submit"
                 className="w-full bg-medical-primary hover:bg-medical-primary/90"
                 disabled={isLoading}
               >
-                {isLoading ? 'Logging in...' : 'Log in'}
+                {isLoading ? "Logging in..." : "Log in"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center border-t p-4">
             <p className="text-sm text-muted-foreground">
-              Need help? Contact <span className="text-medical-primary">IT Support</span>
+              Need help? Contact{" "}
+              <span className="text-medical-primary">IT Support</span>
             </p>
           </CardFooter>
         </Card>

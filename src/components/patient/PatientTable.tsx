@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, FileText, Edit, Trash2, RefreshCw } from "lucide-react";
+import { Eye, FileText, Edit, Trash2, RefreshCw, Pill } from "lucide-react";
 import { hasPermission } from '@/utils/permissions';
 import PatientDetailsModal from './PatientDetailsModal';
 import EditPatientForm from './EditPatientForm';
@@ -15,11 +16,12 @@ import {
 } from "@/components/ui/table";
 import type { Patient, APIPatient } from '@/types/patient';
 import type { UserRole } from '@/utils/permissions';
+import type { APIPrescription } from '@/types/prescription';
 
 type PatientTableProps = {
   patients: Patient[];
   onViewPatient: (patientId: number) => void;
-  onPrescribe: (patientId: number) => void;
+  onCreatePrescription: (patient: Patient) => void;
   onPatientUpdate: (updatedPatient: Patient) => void;
   onRemovePatient: (patientId: number) => void;
   userRole: UserRole;
@@ -28,7 +30,7 @@ type PatientTableProps = {
 const PatientTable: React.FC<PatientTableProps> = ({
   patients,
   onViewPatient,
-  onPrescribe,
+  onCreatePrescription,
   onPatientUpdate,
   onRemovePatient,
   userRole
@@ -41,6 +43,46 @@ const PatientTable: React.FC<PatientTableProps> = ({
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeletingPatient, setIsDeletingPatient] = useState<number | null>(null);
+  const [patientPrescriptions, setPatientPrescriptions] = useState<{[key: string]: APIPrescription[]}>({});
+
+  useEffect(() => {
+    fetchAllPrescriptions();
+  }, []);
+
+  const fetchAllPrescriptions = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const authToken = localStorage.getItem('authToken');
+      const tokenType = localStorage.getItem('tokenType') || 'Bearer';
+      const finalToken = authToken || token;
+      
+      if (!finalToken) return;
+
+      const response = await fetch('http://132.220.27.51/prescriptii/', {
+        method: 'GET',
+        headers: {
+          'Authorization': `${tokenType} ${finalToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const prescriptions: APIPrescription[] = await response.json();
+        const prescriptionsByPatient: {[key: string]: APIPrescription[]} = {};
+        
+        prescriptions.forEach(prescription => {
+          if (!prescriptionsByPatient[prescription.CNP]) {
+            prescriptionsByPatient[prescription.CNP] = [];
+          }
+          prescriptionsByPatient[prescription.CNP].push(prescription);
+        });
+        
+        setPatientPrescriptions(prescriptionsByPatient);
+      }
+    } catch (error) {
+      console.error("Error fetching prescriptions:", error);
+    }
+  };
 
   const handleViewPatient = (patient: Patient) => {
     console.log("Viewing patient data:", patient);
@@ -117,6 +159,11 @@ const PatientTable: React.FC<PatientTableProps> = ({
       setIsDeletingPatient(null);
     }
   };
+
+  const getPrescriptionCount = (cnp: string | undefined) => {
+    if (!cnp) return 0;
+    return patientPrescriptions[cnp]?.length || 0;
+  };
   
   return (
     <>
@@ -129,6 +176,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
               <TableHead>Bed ID</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Blood Type</TableHead>
+              <TableHead>Prescriptions</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -156,6 +204,11 @@ const PatientTable: React.FC<PatientTableProps> = ({
                   </TableCell>
                   <TableCell>{patient.grupa_sange || 'Unknown'}</TableCell>
                   <TableCell>
+                    <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                      {getPrescriptionCount(patient.CNP)} prescriptions
+                    </span>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex space-x-2">
                       <Button 
                         variant="outline" 
@@ -170,9 +223,9 @@ const PatientTable: React.FC<PatientTableProps> = ({
                         <Button 
                           variant="outline"
                           size="sm"
-                          onClick={() => onPrescribe(patient.id)}
+                          onClick={() => onCreatePrescription(patient)}
                         >
-                          <FileText className="w-4 h-4 mr-1" />
+                          <Pill className="w-4 h-4 mr-1" />
                           Prescribe
                         </Button>
                       )}
@@ -215,7 +268,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   No patients found
                 </TableCell>
               </TableRow>

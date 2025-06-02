@@ -25,8 +25,19 @@ export type Patient = {
   grupa_sange: string;
   rh: RhFactor;
   admissionDate: string;
-  prescriptions: Prescription[];
+  prescriptions: PrescriptionInfo[];
   room?: string;
+};
+
+export type PrescriptionInfo = {
+  id: number;
+  medication: string;
+  dosage: string;
+  frequency: string;
+  startDate: string;
+  endDate: string;
+  prescribedBy: string;
+  notes: string;
 };
 
 export type APIPatient = {
@@ -47,17 +58,6 @@ export type APIPatient = {
   grupa_sange: string;
   rh: string;
   id_pat: string;
-};
-
-export type Prescription = {
-  id: number;
-  medication: string;
-  dosage: string;
-  frequency: string;
-  startDate: string;
-  endDate: string;
-  prescribedBy: string;
-  notes: string;
 };
 
 export type NewPatient = {
@@ -82,4 +82,4 @@ export type NewPatient = {
   admissionDate: string;
 };
 
-export type NewPrescription = Omit<Prescription, 'id'>;
+export type NewPrescription = Omit<PrescriptionInfo, 'id'>;

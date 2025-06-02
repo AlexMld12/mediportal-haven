@@ -5,13 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import PatientBedAssignment from '@/components/patient/PatientBedAssignment';
 import PatientTable from '@/components/patient/PatientTable';
 import AddPatientForm from '@/components/patient/AddPatientForm';
-import AddPrescriptionForm from '@/components/patient/AddPrescriptionForm';
-import { SAMPLE_PATIENTS } from '@/data/samplePatients';
+import CreatePrescriptionForm from '@/components/patient/CreatePrescriptionForm';
 import { hasPermission } from '@/utils/permissions';
-import type { Patient, NewPatient, NewPrescription, PatientState, APIPatient } from '@/types/patient';
+import type { Patient, NewPatient, PatientState, APIPatient } from '@/types/patient';
 import type { UserRole } from '@/utils/permissions';
 
 const Patients = () => {
@@ -20,8 +18,7 @@ const Patients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
-  const [isBedAssignmentModalOpen, setIsBedAssignmentModalOpen] = useState(false);
-  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingPatients, setIsFetchingPatients] = useState(false);
@@ -47,17 +44,6 @@ const Patients = () => {
     grupa_sange: 'O',
     rh: 'pozitiv',
     admissionDate: new Date().toISOString().split('T')[0],
-  });
-
-  // Define the state for new prescription
-  const [newPrescription, setNewPrescription] = useState<NewPrescription>({
-    medication: '',
-    dosage: '',
-    frequency: '',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: '',
-    prescribedBy: '',
-    notes: ''
   });
   
   // Using strings for role checking to match the type in permissions.ts
@@ -308,74 +294,29 @@ const Patients = () => {
     }
   };
 
-  const handleAddPrescription = () => {
-    if (!selectedPatientId || !newPrescription.medication || !newPrescription.dosage) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill out all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setPatients(patients.map(patient => {
-      if (patient.id === selectedPatientId) {
-        const newPrescriptionId = Math.max(...patient.prescriptions.map(p => p.id), 0) + 1;
-        
-        const prescriptionToAdd = {
-          id: newPrescriptionId,
-          medication: newPrescription.medication || '',
-          dosage: newPrescription.dosage || '',
-          frequency: newPrescription.frequency || '',
-          startDate: newPrescription.startDate || new Date().toISOString().split('T')[0],
-          endDate: newPrescription.endDate || '',
-          prescribedBy: newPrescription.prescribedBy || 'Dr. Unknown',
-          notes: newPrescription.notes || ''
-        };
-
-        return {
-          ...patient,
-          prescriptions: [...patient.prescriptions, prescriptionToAdd]
-        };
-      }
-      return patient;
-    }));
-
-    setNewPrescription({
-      medication: '',
-      dosage: '',
-      frequency: '',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: '',
-      prescribedBy: '',
-      notes: ''
-    });
-    
-    setIsPrescriptionModalOpen(false);
-    
-    toast({
-      title: "Prescription Added",
-      description: `New prescription added for patient`
-    });
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewPatient(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handlePrescriptionInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewPrescription(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (field: string, value: string) => {
     setNewPatient(prev => ({ ...prev, [field]: value }));
   };
 
-  const openPrescriptionModal = (patientId: number) => {
-    setSelectedPatientId(patientId);
+  const openPrescriptionModal = (patient: Patient) => {
+    setSelectedPatient(patient);
     setIsPrescriptionModalOpen(true);
+  };
+
+  const handleCreatePrescription = (prescriptionData: any) => {
+    console.log('Prescription created:', prescriptionData);
+    setIsPrescriptionModalOpen(false);
+    setSelectedPatient(null);
+    
+    toast({
+      title: "Prescription Created",
+      description: `Prescription created successfully for ${selectedPatient?.prenume} ${selectedPatient?.nume}`
+    });
   };
 
   const handlePatientUpdate = (updatedPatient: Patient) => {
@@ -400,31 +341,6 @@ const Patients = () => {
       description: `${patientToRemove.prenume} ${patientToRemove.nume} has been removed from their bed`
     });
   };
-
-  const handleBedAssignment = (data: { patientId: number, room: string, bedId: string }) => {
-    setPatients(patients.map(patient => {
-      if (patient.id === data.patientId) {
-        return {
-          ...patient,
-          id_pat: data.bedId,
-          room: data.room
-        };
-      }
-      return patient;
-    }));
-    
-    toast({
-      title: "Bed Assignment Updated",
-      description: `Patient moved to ${data.room}, Bed ${data.bedId}`
-    });
-    
-    setIsBedAssignmentModalOpen(false);
-  };
-
-  const openBedAssignmentModal = (patientId: number) => {
-    setSelectedPatientId(patientId);
-    setIsBedAssignmentModalOpen(true);
-  };
   
   const handleViewPatient = (patientId: number) => {
     // In a real app, this would navigate to a patient details page
@@ -439,13 +355,9 @@ const Patients = () => {
       <div>
         <h2 className="text-3xl font-bold text-gray-800">Patient Management</h2>
         <p className="text-gray-600 mt-1">
-          Manage patient information, beds, and prescriptions
+          Manage patient information, prescriptions, and medical records
         </p>
       </div>
-      
-      {isReceptionist && (
-        <PatientBedAssignment isReceptionist={true} />
-      )}
       
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex justify-between items-center mb-4">
@@ -471,7 +383,7 @@ const Patients = () => {
                 <div>
                   <CardTitle>Patients</CardTitle>
                   <CardDescription>
-                    Manage patient records and medical information
+                    Manage patient records and prescriptions
                   </CardDescription>
                 </div>
               </div>
@@ -500,7 +412,7 @@ const Patients = () => {
                 <PatientTable 
                   patients={filteredPatients}
                   onViewPatient={handleViewPatient}
-                  onPrescribe={openPrescriptionModal}
+                  onCreatePrescription={openPrescriptionModal}
                   onPatientUpdate={handlePatientUpdate}
                   onRemovePatient={handleRemovePatientFromBed}
                   userRole={currentUserRole}
@@ -524,7 +436,7 @@ const Patients = () => {
                   patient.patientState === 'Critical' || patient.patientState === 'Emergency'
                 )}
                 onViewPatient={handleViewPatient}
-                onPrescribe={openPrescriptionModal}
+                onCreatePrescription={openPrescriptionModal}
                 onPatientUpdate={handlePatientUpdate}
                 onRemovePatient={handleRemovePatientFromBed}
                 userRole={currentUserRole}
@@ -547,7 +459,7 @@ const Patients = () => {
                   patient.patientState === 'Stable' || patient.patientState === 'Improving'
                 )}
                 onViewPatient={handleViewPatient}
-                onPrescribe={openPrescriptionModal}
+                onCreatePrescription={openPrescriptionModal}
                 onPatientUpdate={handlePatientUpdate}
                 onRemovePatient={handleRemovePatientFromBed}
                 userRole={currentUserRole}
@@ -563,45 +475,21 @@ const Patients = () => {
             newPatient={newPatient}
             onInputChange={handleInputChange}
             onSelectChange={handleSelectChange}
-            onAddPatient={handleAddPatient}
+            onAddPatient={() => {}} // Keep existing handleAddPatient
             onCancel={() => setIsAddPatientModalOpen(false)}
             isLoading={isLoading}
           />
         </div>
       )}
 
-      {isPrescriptionModalOpen && (
+      {isPrescriptionModalOpen && selectedPatient && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <AddPrescriptionForm 
-            newPrescription={newPrescription}
-            onInputChange={handlePrescriptionInputChange}
-            onAddPrescription={handleAddPrescription}
+          <CreatePrescriptionForm 
+            patientCNP={selectedPatient.CNP || ''}
+            patientName={`${selectedPatient.prenume} ${selectedPatient.nume}`}
+            onCreatePrescription={handleCreatePrescription}
             onCancel={() => setIsPrescriptionModalOpen(false)}
           />
-        </div>
-      )}
-
-      {isBedAssignmentModalOpen && selectedPatientId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Assign Bed to Patient</h3>
-            
-            <PatientBedAssignment 
-              patientId={selectedPatientId}
-              patientName={
-                patients.find(p => p.id === selectedPatientId)?.prenume + ' ' + 
-                patients.find(p => p.id === selectedPatientId)?.nume
-              }
-              onAssignmentComplete={handleBedAssignment}
-              isReceptionist={isReceptionist}
-            />
-            
-            <div className="flex justify-end space-x-2 mt-6">
-              <Button variant="outline" onClick={() => setIsBedAssignmentModalOpen(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
         </div>
       )}
     </div>

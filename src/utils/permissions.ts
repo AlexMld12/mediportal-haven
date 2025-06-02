@@ -81,8 +81,8 @@ export const BACKEND_TO_FRONTEND_ROLE: Record<string, UserRole> = {
   M: 'Doctor',
   R: 'Receptionist',
   F: 'Pharmacist',
-  A: 'Administrator',
-  D: 'Nurse',
+  A: 'Nurse',
+  D: 'Administrator',
   // Add more if backend adds more roles
 };
 
@@ -90,8 +90,8 @@ export const FRONTEND_TO_BACKEND_ROLE: Record<UserRole, string> = {
   'Doctor': 'M',
   'Receptionist': 'R',
   'Pharmacist': 'F',
-  'Administrator': 'A',
-  'Nurse': 'D',
+  'Nurse': 'A',
+  'Administrator': 'D',
   'Transport Tech': 'T', // Only if backend supports this
 };
 

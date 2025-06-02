@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-
-type UserRole = 'Administrator' | 'Doctor' | 'Nurse' | 'Pharmacist' | 'Transport Tech' | 'Receptionist';
+import { frontendRoleToBackend, UserRole } from "@/utils/permissions";
 
 type User = {
   id: number;
@@ -14,147 +25,196 @@ type User = {
   email: string;
   role: UserRole;
   permissions: string[];
-  status: 'Active' | 'Inactive';
+  status: "Active" | "Inactive";
 };
 
 // Updated sample users with permissions
 const SAMPLE_USERS: User[] = [
-  { 
-    id: 1, 
-    name: 'Admin User', 
-    email: 'admin@biomedbot.hospital', 
-    role: 'Administrator', 
-    permissions: ['manage_users', 'manage_patients', 'manage_medications', 'manage_transports', 'view_logs'],
-    status: 'Active' 
+  {
+    id: 1,
+    name: "Admin User",
+    email: "admin@biomedbot.hospital",
+    role: "Administrator",
+    permissions: [
+      "manage_users",
+      "manage_patients",
+      "manage_medications",
+      "manage_transports",
+      "view_logs",
+    ],
+    status: "Active",
   },
-  { 
-    id: 2, 
-    name: 'Dr. Sarah Johnson', 
-    email: 'sarah.johnson@biomedbot.hospital', 
-    role: 'Doctor', 
-    permissions: ['manage_patients', 'manage_medications', 'view_logs'],
-    status: 'Active' 
+  {
+    id: 2,
+    name: "Dr. Sarah Johnson",
+    email: "sarah.johnson@biomedbot.hospital",
+    role: "Doctor",
+    permissions: ["manage_patients", "manage_medications", "view_logs"],
+    status: "Active",
   },
-  { 
-    id: 3, 
-    name: 'Robert Chen', 
-    email: 'robert.chen@biomedbot.hospital', 
-    role: 'Pharmacist', 
-    permissions: ['manage_medications', 'view_logs'],
-    status: 'Active' 
+  {
+    id: 3,
+    name: "Robert Chen",
+    email: "robert.chen@biomedbot.hospital",
+    role: "Pharmacist",
+    permissions: ["manage_medications", "view_logs"],
+    status: "Active",
   },
-  { 
-    id: 4, 
-    name: 'Emily Rodriguez', 
-    email: 'emily.rodriguez@biomedbot.hospital', 
-    role: 'Nurse', 
-    permissions: ['view_patients', 'view_medications', 'view_logs'],
-    status: 'Inactive' 
+  {
+    id: 4,
+    name: "Emily Rodriguez",
+    email: "emily.rodriguez@biomedbot.hospital",
+    role: "Nurse",
+    permissions: ["view_patients", "view_medications", "view_logs"],
+    status: "Inactive",
   },
-  { 
-    id: 5, 
-    name: 'Michael Thompson', 
-    email: 'michael.thompson@biomedbot.hospital', 
-    role: 'Transport Tech', 
-    permissions: ['manage_transports', 'view_logs'],
-    status: 'Active' 
+  {
+    id: 5,
+    name: "Michael Thompson",
+    email: "michael.thompson@biomedbot.hospital",
+    role: "Transport Tech",
+    permissions: ["manage_transports", "view_logs"],
+    status: "Active",
   },
-  { 
-    id: 6, 
-    name: 'Lisa Carter', 
-    email: 'lisa.carter@biomedbot.hospital', 
-    role: 'Receptionist', 
-    permissions: ['add_patients', 'assign_beds', 'view_patients'],
-    status: 'Active' 
+  {
+    id: 6,
+    name: "Lisa Carter",
+    email: "lisa.carter@biomedbot.hospital",
+    role: "Receptionist",
+    permissions: ["add_patients", "assign_beds", "view_patients"],
+    status: "Active",
   },
 ];
 
 // Predefined roles with their permissions
 const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
-  'Administrator': ['manage_users', 'manage_patients', 'manage_medications', 'manage_transports', 'view_logs'],
-  'Doctor': ['manage_patients', 'manage_medications', 'view_logs'],
-  'Nurse': ['view_patients', 'view_medications', 'view_logs'],
-  'Pharmacist': ['manage_medications', 'view_logs'],
-  'Transport Tech': ['manage_transports', 'view_logs'],
-  'Receptionist': ['add_patients', 'assign_beds', 'view_patients']
+  Administrator: [
+    "manage_users",
+    "manage_patients",
+    "manage_medications",
+    "manage_transports",
+    "view_logs",
+  ],
+  Doctor: ["manage_patients", "manage_medications", "view_logs"],
+  Nurse: ["view_patients", "view_medications", "view_logs"],
+  Pharmacist: ["manage_medications", "view_logs"],
+  "Transport Tech": ["manage_transports", "view_logs"],
+  Receptionist: ["add_patients", "assign_beds", "view_patients"],
+};
+
+const getCurrentUserRole = (): UserRole | undefined => {
+  // Try to get the role from localStorage (set at login)
+  const role = localStorage.getItem("role");
+  if (!role) return undefined;
+  return role as UserRole;
 };
 
 const Users = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>(SAMPLE_USERS);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
-  const [newUser, setNewUser] = useState<Partial<User>>({
-    name: '',
-    email: '',
-    role: 'Nurse',
-    status: 'Active'
+  const [newUser, setNewUser] = useState<
+    Partial<User> & { nume?: string; prenume?: string }
+  >({
+    nume: "",
+    prenume: "",
+    email: "",
+    role: "Nurse",
+    status: "Active",
   });
+  const currentUserRole = getCurrentUserRole();
 
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleStatusToggle = (userId: number) => {
-    setUsers(prevUsers => prevUsers.map(user => {
-      if (user.id === userId) {
-        const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
-        toast({
-          title: `User ${newStatus}`,
-          description: `${user.name} is now ${newStatus.toLowerCase()}`
-        });
-        return { ...user, status: newStatus };
-      }
-      return user;
-    }));
+    setUsers((prevUsers) =>
+      prevUsers.map((user) => {
+        if (user.id === userId) {
+          const newStatus = user.status === "Active" ? "Inactive" : "Active";
+          toast({
+            title: `User ${newStatus}`,
+            description: `${user.name} is now ${newStatus.toLowerCase()}`,
+          });
+          return { ...user, status: newStatus };
+        }
+        return user;
+      })
+    );
   };
 
-  const handleAddUser = () => {
-    if (!newUser.name || !newUser.email || !newUser.role) {
+  const handleAddUser = async () => {
+    if (!newUser.nume || !newUser.prenume || !newUser.email || !newUser.role) {
       toast({
         title: "Missing Information",
         description: "Please fill out all required fields",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-
-    const newUserId = Math.max(...users.map(u => u.id)) + 1;
-    const userRole = newUser.role as UserRole;
-    
-    const createdUser: User = {
-      id: newUserId,
-      name: newUser.name,
-      email: newUser.email,
-      role: userRole,
-      permissions: ROLE_PERMISSIONS[userRole] || [],
-      status: newUser.status as 'Active' | 'Inactive' || 'Active'
-    };
-
-    setUsers([...users, createdUser]);
-    setNewUser({
-      name: '',
-      email: '',
-      role: 'Nurse',
-      status: 'Active'
-    });
-    setIsAddUserModalOpen(false);
-    
-    toast({
-      title: "User Created",
-      description: `${createdUser.name} has been added as a ${createdUser.role}`
-    });
+    try {
+      const backendRole = frontendRoleToBackend(newUser.role as UserRole);
+      if (!backendRole) throw new Error("Invalid role");
+      const response = await fetch("http://localhost:8000/angajati", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rol: backendRole,
+          nume: newUser.nume,
+          prenume: newUser.prenume,
+          email: newUser.email,
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Failed to create user");
+      }
+      const created = await response.json();
+      // Add to local state (id is generated locally for FE purposes)
+      const newUserId = Math.max(...users.map((u) => u.id)) + 1;
+      const userRole = newUser.role as UserRole;
+      const createdUser: User = {
+        id: newUserId,
+        name: `${newUser.nume} ${newUser.prenume}`,
+        email: newUser.email!,
+        role: userRole,
+        permissions: ROLE_PERMISSIONS[userRole] || [],
+        status: (newUser.status as "Active" | "Inactive") || "Active",
+      };
+      setUsers([...users, createdUser]);
+      setNewUser({
+        nume: "",
+        prenume: "",
+        email: "",
+        role: "Nurse",
+        status: "Active",
+      });
+      setIsAddUserModalOpen(false);
+      toast({
+        title: "User Created",
+        description: `${createdUser.name} has been added as a ${createdUser.role}`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to create user",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setNewUser(prev => ({ ...prev, [name]: value }));
+    setNewUser((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleRoleChange = (value: string) => {
-    setNewUser(prev => ({ ...prev, role: value as UserRole }));
+    setNewUser((prev) => ({ ...prev, role: value as UserRole }));
   };
 
   return (
@@ -165,7 +225,7 @@ const Users = () => {
           Manage system users and their permissions
         </p>
       </div>
-      
+
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -175,25 +235,27 @@ const Users = () => {
                 Manage user accounts and access permissions
               </CardDescription>
             </div>
-            <div className="flex-shrink-0">
-              <Button onClick={() => setIsAddUserModalOpen(true)}>
-                Add New User
-              </Button>
-            </div>
+            {currentUserRole === "Administrator" && (
+              <div className="flex-shrink-0">
+                <Button onClick={() => setIsAddUserModalOpen(true)}>
+                  Add New User
+                </Button>
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
           <div className="mb-6">
             <Label htmlFor="search">Search Users</Label>
-            <Input 
-              id="search" 
+            <Input
+              id="search"
               placeholder="Search by name, email, or role..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-md"
             />
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
@@ -212,54 +274,62 @@ const Users = () => {
                       <td className="py-3 px-4">{user.name}</td>
                       <td className="py-3 px-4">{user.email}</td>
                       <td className="py-3 px-4">
-                        <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                          user.role === 'Administrator' 
-                            ? 'bg-purple-100 text-purple-800' 
-                            : user.role === 'Doctor'
-                            ? 'bg-blue-100 text-blue-800'
-                            : user.role === 'Pharmacist'
-                            ? 'bg-green-100 text-green-800'
-                            : user.role === 'Nurse'
-                            ? 'bg-pink-100 text-pink-800'
-                            : user.role === 'Transport Tech'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : user.role === 'Receptionist'
-                            ? 'bg-gray-100 text-gray-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs ${
+                            user.role === "Administrator"
+                              ? "bg-purple-100 text-purple-800"
+                              : user.role === "Doctor"
+                              ? "bg-blue-100 text-blue-800"
+                              : user.role === "Pharmacist"
+                              ? "bg-green-100 text-green-800"
+                              : user.role === "Nurse"
+                              ? "bg-pink-100 text-pink-800"
+                              : user.role === "Transport Tech"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : user.role === "Receptionist"
+                              ? "bg-gray-100 text-gray-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
                           {user.role}
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                          user.status === 'Active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs ${
+                            user.status === "Active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
                           {user.status}
                         </span>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex space-x-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => {
                               toast({
                                 title: "Edit User",
-                                description: `Editing ${user.name} will be available soon.`
+                                description: `Editing ${user.name} will be available soon.`,
                               });
                             }}
                           >
                             Edit
                           </Button>
-                          
-                          <Button 
-                            variant={user.status === 'Active' ? "outline" : "default"}
+
+                          <Button
+                            variant={
+                              user.status === "Active" ? "outline" : "default"
+                            }
                             size="sm"
                             onClick={() => handleStatusToggle(user.id)}
                           >
-                            {user.status === 'Active' ? 'Deactivate' : 'Activate'}
+                            {user.status === "Active"
+                              ? "Deactivate"
+                              : "Activate"}
                           </Button>
                         </div>
                       </td>
@@ -285,16 +355,25 @@ const Users = () => {
             <h3 className="text-xl font-bold mb-4">Add New User</h3>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="nume">Last Name</Label>
                 <Input
-                  id="name"
-                  name="name"
-                  value={newUser.name}
+                  id="nume"
+                  name="nume"
+                  value={newUser.nume}
                   onChange={handleInputChange}
-                  placeholder="Enter full name"
+                  placeholder="Enter last name"
                 />
               </div>
-              
+              <div>
+                <Label htmlFor="prenume">First Name</Label>
+                <Input
+                  id="prenume"
+                  name="prenume"
+                  value={newUser.prenume}
+                  onChange={handleInputChange}
+                  placeholder="Enter first name"
+                />
+              </div>
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -306,10 +385,14 @@ const Users = () => {
                   placeholder="Enter email address"
                 />
               </div>
-              
               <div>
                 <Label htmlFor="role">Role</Label>
-                <Select value={newUser.role as string} onValueChange={handleRoleChange}>
+                <Select
+                  value={newUser.role as string}
+                  onValueChange={(value) =>
+                    setNewUser((prev) => ({ ...prev, role: value as UserRole }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -318,19 +401,21 @@ const Users = () => {
                     <SelectItem value="Doctor">Doctor</SelectItem>
                     <SelectItem value="Nurse">Nurse</SelectItem>
                     <SelectItem value="Pharmacist">Pharmacist</SelectItem>
-                    <SelectItem value="Transport Tech">Transport Tech</SelectItem>
+                    <SelectItem value="Transport Tech">
+                      Transport Tech
+                    </SelectItem>
                     <SelectItem value="Receptionist">Receptionist</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
               <div className="flex justify-end space-x-2 pt-4">
-                <Button variant="outline" onClick={() => setIsAddUserModalOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsAddUserModalOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleAddUser}>
-                  Add User
-                </Button>
+                <Button onClick={handleAddUser}>Add User</Button>
               </div>
             </div>
           </div>

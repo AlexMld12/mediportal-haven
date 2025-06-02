@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -6,6 +5,7 @@ import { Eye, FileText, Edit, Trash2, RefreshCw, Pill } from "lucide-react";
 import { hasPermission } from '@/utils/permissions';
 import PatientDetailsModal from './PatientDetailsModal';
 import EditPatientForm from './EditPatientForm';
+import PrescriptionDetailsModal from './PrescriptionDetailsModal';
 import {
   Table,
   TableBody,
@@ -42,6 +42,8 @@ const PatientTable: React.FC<PatientTableProps> = ({
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPrescriptionDetailsModalOpen, setIsPrescriptionDetailsModalOpen] = useState(false);
+  const [selectedPatientForPrescriptions, setSelectedPatientForPrescriptions] = useState<Patient | null>(null);
   const [isDeletingPatient, setIsDeletingPatient] = useState<number | null>(null);
   const [patientPrescriptions, setPatientPrescriptions] = useState<{[key: string]: APIPrescription[]}>({});
 
@@ -160,6 +162,11 @@ const PatientTable: React.FC<PatientTableProps> = ({
     }
   };
 
+  const handleViewPrescriptions = (patient: Patient) => {
+    setSelectedPatientForPrescriptions(patient);
+    setIsPrescriptionDetailsModalOpen(true);
+  };
+
   const getPrescriptionCount = (cnp: string | undefined) => {
     if (!cnp) return 0;
     return patientPrescriptions[cnp]?.length || 0;
@@ -204,9 +211,12 @@ const PatientTable: React.FC<PatientTableProps> = ({
                   </TableCell>
                   <TableCell>{patient.grupa_sange || 'Unknown'}</TableCell>
                   <TableCell>
-                    <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                    <button
+                      className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs hover:bg-blue-200 cursor-pointer"
+                      onClick={() => handleViewPrescriptions(patient)}
+                    >
                       {getPrescriptionCount(patient.CNP)} prescriptions
-                    </span>
+                    </button>
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
@@ -281,6 +291,13 @@ const PatientTable: React.FC<PatientTableProps> = ({
         patient={selectedPatient} 
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
+      />
+
+      <PrescriptionDetailsModal
+        isOpen={isPrescriptionDetailsModalOpen}
+        onClose={() => setIsPrescriptionDetailsModalOpen(false)}
+        patientCNP={selectedPatientForPrescriptions?.CNP || ''}
+        patientName={selectedPatientForPrescriptions ? `${selectedPatientForPrescriptions.prenume} ${selectedPatientForPrescriptions.nume}` : ''}
       />
 
       {isEditModalOpen && selectedPatient && (

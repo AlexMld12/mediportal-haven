@@ -16,6 +16,11 @@ import { Label } from "@/components/ui/label";
 import { jwtDecode } from "jwt-decode";
 import { backendRoleToFrontend } from "@/utils/permissions";
 
+type DecodedToken = {
+  rol: string;
+  [key: string]: unknown;
+};
+
 const Login = () => {
   const [formData, setFormData] = useState({
     username: "",
@@ -116,7 +121,7 @@ const Login = () => {
 
       // Decode the JWT to extract the backend role and map it to frontend UserRole
       try {
-        const decoded: any = jwtDecode(data.access_token);
+        const decoded: DecodedToken = jwtDecode(data.access_token);
         const backendRole = decoded.rol;
         const frontendRole = backendRoleToFrontend(backendRole);
         if (frontendRole) {

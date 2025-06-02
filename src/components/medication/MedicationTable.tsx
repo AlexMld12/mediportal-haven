@@ -13,10 +13,12 @@ import {
 
 type Medication = {
   id: number;
-  nume: string;
+  id_medicament: string;
+  denumire: string;
   concentratie: string;
   forma_farmaceutica: string;
   pret: number;
+  stoc: number;
   disponibilitate: boolean;
 };
 
@@ -40,10 +42,12 @@ const MedicationTable: React.FC<MedicationTableProps> = ({ medications, onRefres
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>ID</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Concentration</TableHead>
               <TableHead>Pharmaceutical Form</TableHead>
               <TableHead>Price</TableHead>
+              <TableHead>Stock</TableHead>
               <TableHead>Availability</TableHead>
             </TableRow>
           </TableHeader>
@@ -51,10 +55,12 @@ const MedicationTable: React.FC<MedicationTableProps> = ({ medications, onRefres
             {medications.length > 0 ? (
               medications.map((medication) => (
                 <TableRow key={medication.id}>
-                  <TableCell className="font-medium">{medication.nume}</TableCell>
+                  <TableCell className="font-medium">{medication.id_medicament}</TableCell>
+                  <TableCell>{medication.denumire}</TableCell>
                   <TableCell>{medication.concentratie}</TableCell>
                   <TableCell>{medication.forma_farmaceutica}</TableCell>
                   <TableCell>${medication.pret}</TableCell>
+                  <TableCell>{medication.stoc}</TableCell>
                   <TableCell>
                     <span className={`inline-block px-2 py-1 rounded-full text-xs ${
                       medication.disponibilitate
@@ -68,7 +74,7 @@ const MedicationTable: React.FC<MedicationTableProps> = ({ medications, onRefres
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   No medications found
                 </TableCell>
               </TableRow>

@@ -8,10 +8,12 @@ import CreateMedicationForm from '@/components/medication/CreateMedicationForm';
 
 type Medication = {
   id: number;
-  nume: string;
+  id_medicament: string;
+  denumire: string;
   concentratie: string;
   forma_farmaceutica: string;
   pret: number;
+  stoc: number;
   disponibilitate: boolean;
 };
 

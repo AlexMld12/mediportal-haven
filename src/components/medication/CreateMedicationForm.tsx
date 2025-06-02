@@ -7,10 +7,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 type Medication = {
   id: number;
-  nume: string;
+  id_medicament: string;
+  denumire: string;
   concentratie: string;
   forma_farmaceutica: string;
   pret: number;
+  stoc: number;
   disponibilitate: boolean;
 };
 
@@ -24,10 +26,12 @@ const CreateMedicationForm: React.FC<CreateMedicationFormProps> = ({
   onCancel
 }) => {
   const [formData, setFormData] = useState({
-    nume: '',
+    id_medicament: '',
+    denumire: '',
     concentratie: '',
     forma_farmaceutica: '',
     pret: '',
+    stoc: '',
     disponibilitate: true
   });
 
@@ -49,15 +53,17 @@ const CreateMedicationForm: React.FC<CreateMedicationFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nume || !formData.concentratie || !formData.forma_farmaceutica || !formData.pret) {
+    if (!formData.id_medicament || !formData.denumire || !formData.concentratie || !formData.forma_farmaceutica || !formData.pret || !formData.stoc) {
       return;
     }
 
     onCreateMedication({
-      nume: formData.nume,
+      id_medicament: formData.id_medicament,
+      denumire: formData.denumire,
       concentratie: formData.concentratie,
       forma_farmaceutica: formData.forma_farmaceutica,
       pret: parseFloat(formData.pret),
+      stoc: parseInt(formData.stoc),
       disponibilitate: formData.disponibilitate
     });
   };
@@ -67,11 +73,23 @@ const CreateMedicationForm: React.FC<CreateMedicationFormProps> = ({
       <h3 className="text-xl font-bold mb-4">Add New Medication</h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label htmlFor="nume">Name *</Label>
+          <Label htmlFor="id_medicament">Medication ID *</Label>
           <Input
-            id="nume"
-            name="nume"
-            value={formData.nume}
+            id="id_medicament"
+            name="id_medicament"
+            value={formData.id_medicament}
+            onChange={handleInputChange}
+            placeholder="Medication ID"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="denumire">Name *</Label>
+          <Input
+            id="denumire"
+            name="denumire"
+            value={formData.denumire}
             onChange={handleInputChange}
             placeholder="Medication name"
             required
@@ -112,6 +130,19 @@ const CreateMedicationForm: React.FC<CreateMedicationFormProps> = ({
             value={formData.pret}
             onChange={handleInputChange}
             placeholder="0.00"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="stoc">Stock *</Label>
+          <Input
+            id="stoc"
+            name="stoc"
+            type="number"
+            value={formData.stoc}
+            onChange={handleInputChange}
+            placeholder="0"
             required
           />
         </div>

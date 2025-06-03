@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { 
-  LayoutDashboard, PillIcon, Users, Settings, 
+  LayoutDashboard, PillIcon, Users, 
   ChevronLeft, ChevronRight, HospitalIcon, UserRound 
 } from 'lucide-react';
 
@@ -57,7 +56,6 @@ const Sidebar = ({ isMobile, onClose }: SidebarProps) => {
     { title: "Patients", icon: UserRound, path: "/dashboard/patients" },
     { title: "Medication", icon: PillIcon, path: "/dashboard/medication" },
     { title: "Users", icon: Users, path: "/dashboard/users" },
-    { title: "Settings", icon: Settings, path: "/dashboard/settings" },
   ];
 
   return (

@@ -17,7 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { frontendRoleToBackend, UserRole } from "@/utils/permissions";
+import {
+  frontendRoleToBackend,
+  backendRoleToFrontend,
+  UserRole,
+} from "@/utils/permissions";
 
 type User = {
   id: number;
@@ -111,7 +115,7 @@ const getCurrentUserRole = (): UserRole | undefined => {
 
 const Users = () => {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>(SAMPLE_USERS);
+  const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [newUser, setNewUser] = useState<
@@ -124,6 +128,52 @@ const Users = () => {
     status: "Active",
   });
   const currentUserRole = getCurrentUserRole();
+
+  React.useEffect(() => {
+    type BackendUser = {
+      rol: string;
+      nume: string;
+      prenume: string;
+      email: string;
+    };
+    const fetchUsers = async () => {
+      const token = localStorage.getItem("token");
+      const authToken = localStorage.getItem("authToken");
+      const tokenType = localStorage.getItem("tokenType") || "Bearer";
+      const finalToken = authToken || token;
+      if (!finalToken) return;
+      try {
+        const response = await fetch("http://132.220.27.51/angajati", {
+          headers: {
+            Authorization: `${tokenType} ${finalToken}`,
+            "Content-Type": "application/json",
+          },
+        });
+        if (!response.ok) throw new Error("Failed to fetch users");
+        const data: BackendUser[] = await response.json();
+        // data is an array of { rol, nume, prenume, email }
+        const mappedUsers: User[] = data.map((u, idx) => {
+          const role = backendRoleToFrontend(u.rol) || "Receptionist";
+          return {
+            id: idx + 1,
+            name: `${u.nume} ${u.prenume}`,
+            email: u.email,
+            role,
+            permissions: ROLE_PERMISSIONS[role] || [],
+            status: "Active",
+          };
+        });
+        setUsers(mappedUsers);
+      } catch (err) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch users",
+          variant: "destructive",
+        });
+      }
+    };
+    fetchUsers();
+  }, [toast]);
 
   const filteredUsers = users.filter(
     (user) =>
@@ -160,9 +210,24 @@ const Users = () => {
     try {
       const backendRole = frontendRoleToBackend(newUser.role as UserRole);
       if (!backendRole) throw new Error("Invalid role");
-      const response = await fetch("http://localhost:8000/angajati", {
+      const token = localStorage.getItem("token");
+      const authToken = localStorage.getItem("authToken");
+      const tokenType = localStorage.getItem("tokenType") || "Bearer";
+      const finalToken = authToken || token;
+      if (!finalToken) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "You need to be logged in to create users",
+        });
+        return;
+      }
+      const response = await fetch("http://132.220.27.51/angajati", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${tokenType} ${finalToken}`,
+        },
         body: JSON.stringify({
           rol: backendRole,
           nume: newUser.nume,
@@ -199,10 +264,12 @@ const Users = () => {
         title: "User Created",
         description: `${createdUser.name} has been added as a ${createdUser.role}`,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let message = "Failed to create user";
+      if (err instanceof Error) message = err.message;
       toast({
         title: "Error",
-        description: err.message || "Failed to create user",
+        description: message,
         variant: "destructive",
       });
     }

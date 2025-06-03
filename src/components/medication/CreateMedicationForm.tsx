@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 
 type Medication = {
   id: number;
@@ -28,11 +27,7 @@ const CreateMedicationForm: React.FC<CreateMedicationFormProps> = ({
   const [formData, setFormData] = useState({
     id_medicament: '',
     denumire: '',
-    concentratie: '',
-    forma_farmaceutica: '',
-    pret: '',
-    stoc: '',
-    disponibilitate: true
+    stoc: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,28 +38,21 @@ const CreateMedicationForm: React.FC<CreateMedicationFormProps> = ({
     }));
   };
 
-  const handleAvailabilityChange = (checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      disponibilitate: checked
-    }));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.id_medicament || !formData.denumire || !formData.concentratie || !formData.forma_farmaceutica || !formData.pret || !formData.stoc) {
+    if (!formData.id_medicament || !formData.denumire || !formData.stoc) {
       return;
     }
 
     onCreateMedication({
       id_medicament: formData.id_medicament,
       denumire: formData.denumire,
-      concentratie: formData.concentratie,
-      forma_farmaceutica: formData.forma_farmaceutica,
-      pret: parseFloat(formData.pret),
+      concentratie: '',
+      forma_farmaceutica: '',
+      pret: 0,
       stoc: parseInt(formData.stoc),
-      disponibilitate: formData.disponibilitate
+      disponibilitate: true
     });
   };
 
@@ -95,44 +83,6 @@ const CreateMedicationForm: React.FC<CreateMedicationFormProps> = ({
             required
           />
         </div>
-        
-        <div>
-          <Label htmlFor="concentratie">Concentration *</Label>
-          <Input
-            id="concentratie"
-            name="concentratie"
-            value={formData.concentratie}
-            onChange={handleInputChange}
-            placeholder="e.g., 250mg"
-            required
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="forma_farmaceutica">Pharmaceutical Form *</Label>
-          <Input
-            id="forma_farmaceutica"
-            name="forma_farmaceutica"
-            value={formData.forma_farmaceutica}
-            onChange={handleInputChange}
-            placeholder="e.g., Tablet, Capsule"
-            required
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="pret">Price *</Label>
-          <Input
-            id="pret"
-            name="pret"
-            type="number"
-            step="0.01"
-            value={formData.pret}
-            onChange={handleInputChange}
-            placeholder="0.00"
-            required
-          />
-        </div>
 
         <div>
           <Label htmlFor="stoc">Stock *</Label>
@@ -145,15 +95,6 @@ const CreateMedicationForm: React.FC<CreateMedicationFormProps> = ({
             placeholder="0"
             required
           />
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="disponibilitate"
-            checked={formData.disponibilitate}
-            onCheckedChange={handleAvailabilityChange}
-          />
-          <Label htmlFor="disponibilitate">Available</Label>
         </div>
         
         <div className="flex justify-end space-x-2 pt-4">

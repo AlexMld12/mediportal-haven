@@ -44,11 +44,7 @@ const MedicationTable: React.FC<MedicationTableProps> = ({ medications, onRefres
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Concentration</TableHead>
-              <TableHead>Pharmaceutical Form</TableHead>
-              <TableHead>Price</TableHead>
               <TableHead>Stock</TableHead>
-              <TableHead>Availability</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -57,24 +53,12 @@ const MedicationTable: React.FC<MedicationTableProps> = ({ medications, onRefres
                 <TableRow key={medication.id}>
                   <TableCell className="font-medium">{medication.id_medicament}</TableCell>
                   <TableCell>{medication.denumire}</TableCell>
-                  <TableCell>{medication.concentratie}</TableCell>
-                  <TableCell>{medication.forma_farmaceutica}</TableCell>
-                  <TableCell>${medication.pret}</TableCell>
                   <TableCell>{medication.stoc}</TableCell>
-                  <TableCell>
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                      medication.disponibilitate
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {medication.disponibilitate ? 'Available' : 'Unavailable'}
-                    </span>
-                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={3} className="h-24 text-center">
                   No medications found
                 </TableCell>
               </TableRow>

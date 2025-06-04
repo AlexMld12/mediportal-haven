@@ -55,7 +55,7 @@ const Login = () => {
     }
 
     console.log("Attempting to connect to authentication service:", {
-      url: "http://132.220.27.51/login",
+      url: "http://132.220.195.219/login",
       credentials: {
         username: formData.username,
         // Not logging the actual password for security
@@ -75,7 +75,7 @@ const Login = () => {
       console.log("Starting authentication with HTTP endpoint");
 
       // Connect to the external authentication service using HTTP
-      const response = await fetch("http://132.220.27.51/login", {
+      const response = await fetch("http://132.220.195.219/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

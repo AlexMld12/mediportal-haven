@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, FileText, Edit, Trash2, RefreshCw, Pill } from "lucide-react";
-import { hasPermission } from '@/utils/permissions';
-import PatientDetailsModal from './PatientDetailsModal';
-import EditPatientForm from './EditPatientForm';
-import PrescriptionDetailsModal from './PrescriptionDetailsModal';
+import { hasPermission } from "@/utils/permissions";
+import PatientDetailsModal from "./PatientDetailsModal";
+import EditPatientForm from "./EditPatientForm";
+import PrescriptionDetailsModal from "./PrescriptionDetailsModal";
 import {
   Table,
   TableBody,
@@ -14,9 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Patient, APIPatient } from '@/types/patient';
-import type { UserRole } from '@/utils/permissions';
-import type { APIPrescription } from '@/types/prescription';
+import type { Patient, APIPatient } from "@/types/patient";
+import type { UserRole } from "@/utils/permissions";
+import type { APIPrescription } from "@/types/prescription";
 
 type PatientTableProps = {
   patients: Patient[];
@@ -33,19 +33,25 @@ const PatientTable: React.FC<PatientTableProps> = ({
   onCreatePrescription,
   onPatientUpdate,
   onRemovePatient,
-  userRole
+  userRole,
 }) => {
   const { toast } = useToast();
-  const isReceptionist = hasPermission(userRole, 'assign_beds');
-  const isDoctor = hasPermission(userRole, 'manage_patients');
-  
+  const isReceptionist = hasPermission(userRole, "assign_beds");
+  const isDoctor = hasPermission(userRole, "manage_patients");
+
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isPrescriptionDetailsModalOpen, setIsPrescriptionDetailsModalOpen] = useState(false);
-  const [selectedPatientForPrescriptions, setSelectedPatientForPrescriptions] = useState<Patient | null>(null);
-  const [isDeletingPatient, setIsDeletingPatient] = useState<number | null>(null);
-  const [patientPrescriptions, setPatientPrescriptions] = useState<{[key: string]: APIPrescription[]}>({});
+  const [isPrescriptionDetailsModalOpen, setIsPrescriptionDetailsModalOpen] =
+    useState(false);
+  const [selectedPatientForPrescriptions, setSelectedPatientForPrescriptions] =
+    useState<Patient | null>(null);
+  const [isDeletingPatient, setIsDeletingPatient] = useState<number | null>(
+    null
+  );
+  const [patientPrescriptions, setPatientPrescriptions] = useState<{
+    [key: string]: APIPrescription[];
+  }>({});
 
   useEffect(() => {
     fetchAllPrescriptions();
@@ -53,32 +59,32 @@ const PatientTable: React.FC<PatientTableProps> = ({
 
   const fetchAllPrescriptions = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const authToken = localStorage.getItem('authToken');
-      const tokenType = localStorage.getItem('tokenType') || 'Bearer';
+      const token = localStorage.getItem("token");
+      const authToken = localStorage.getItem("authToken");
+      const tokenType = localStorage.getItem("tokenType") || "Bearer";
       const finalToken = authToken || token;
-      
+
       if (!finalToken) return;
 
-      const response = await fetch('http://132.220.27.51/prescriptii/', {
-        method: 'GET',
+      const response = await fetch("http://132.220.195.219/prescriptii/", {
+        method: "GET",
         headers: {
-          'Authorization': `${tokenType} ${finalToken}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `${tokenType} ${finalToken}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (response.ok) {
         const prescriptions: APIPrescription[] = await response.json();
-        const prescriptionsByPatient: {[key: string]: APIPrescription[]} = {};
-        
-        prescriptions.forEach(prescription => {
+        const prescriptionsByPatient: { [key: string]: APIPrescription[] } = {};
+
+        prescriptions.forEach((prescription) => {
           if (!prescriptionsByPatient[prescription.CNP]) {
             prescriptionsByPatient[prescription.CNP] = [];
           }
           prescriptionsByPatient[prescription.CNP].push(prescription);
         });
-        
+
         setPatientPrescriptions(prescriptionsByPatient);
       }
     } catch (error) {
@@ -103,59 +109,62 @@ const PatientTable: React.FC<PatientTableProps> = ({
     setIsEditModalOpen(false);
     setSelectedPatient(null);
   };
-  
+
   const handleDeletePatient = async (patient: Patient) => {
     if (!patient.CNP) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Cannot delete patient without CNP"
+        description: "Cannot delete patient without CNP",
       });
       return;
     }
-    
+
     setIsDeletingPatient(patient.id);
-    
+
     try {
-      const token = localStorage.getItem('token');
-      const authToken = localStorage.getItem('authToken');
-      const tokenType = localStorage.getItem('tokenType') || 'Bearer';
+      const token = localStorage.getItem("token");
+      const authToken = localStorage.getItem("authToken");
+      const tokenType = localStorage.getItem("tokenType") || "Bearer";
       const finalToken = authToken || token;
-      
+
       if (!finalToken) {
         toast({
           variant: "destructive",
           title: "Authentication Error",
-          description: "You need to be logged in to delete patients"
+          description: "You need to be logged in to delete patients",
         });
         return;
       }
 
       console.log(`Deleting patient with CNP ${patient.CNP}`);
-      const response = await fetch(`http://132.220.27.51/angajati/medic/${patient.CNP}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `${tokenType} ${finalToken}`,
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `http://132.220.195.219/angajati/medic/${patient.CNP}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `${tokenType} ${finalToken}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to delete patient: ${response.status}`);
       }
 
       onRemovePatient(patient.id);
-      
+
       toast({
         title: "Patient Removed",
-        description: `${patient.prenume} ${patient.nume} has been removed successfully`
+        description: `${patient.prenume} ${patient.nume} has been removed successfully`,
       });
     } catch (error) {
       console.error("Error deleting patient:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to delete patient. Please try again."
+        description: "Failed to delete patient. Please try again.",
       });
     } finally {
       setIsDeletingPatient(null);
@@ -171,7 +180,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
     if (!cnp) return 0;
     return patientPrescriptions[cnp]?.length || 0;
   };
-  
+
   return (
     <>
       <div className="rounded-md border">
@@ -191,25 +200,30 @@ const PatientTable: React.FC<PatientTableProps> = ({
             {patients.length > 0 ? (
               patients.map((patient) => (
                 <TableRow key={patient.id}>
-                  <TableCell className="font-medium">{patient.nume}, {patient.prenume}</TableCell>
-                  <TableCell>{patient.room || 'Not assigned'}</TableCell>
-                  <TableCell>{patient.id_pat || 'N/A'}</TableCell>
+                  <TableCell className="font-medium">
+                    {patient.nume}, {patient.prenume}
+                  </TableCell>
+                  <TableCell>{patient.room || "Not assigned"}</TableCell>
+                  <TableCell>{patient.id_pat || "N/A"}</TableCell>
                   <TableCell>
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                      patient.patientState === 'Critical' || patient.patientState === 'Emergency'
-                        ? 'bg-red-100 text-red-800'
-                        : patient.patientState === 'Stable'
-                        ? 'bg-green-100 text-green-800'
-                        : patient.patientState === 'Improving'
-                        ? 'bg-blue-100 text-blue-800'
-                        : patient.patientState === 'Worsening'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs ${
+                        patient.patientState === "Critical" ||
+                        patient.patientState === "Emergency"
+                          ? "bg-red-100 text-red-800"
+                          : patient.patientState === "Stable"
+                          ? "bg-green-100 text-green-800"
+                          : patient.patientState === "Improving"
+                          ? "bg-blue-100 text-blue-800"
+                          : patient.patientState === "Worsening"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
                       {patient.patientState}
                     </span>
                   </TableCell>
-                  <TableCell>{patient.grupa_sange || 'Unknown'}</TableCell>
+                  <TableCell>{patient.grupa_sange || "Unknown"}</TableCell>
                   <TableCell>
                     <button
                       className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs hover:bg-blue-200 cursor-pointer"
@@ -220,17 +234,17 @@ const PatientTable: React.FC<PatientTableProps> = ({
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => handleViewPatient(patient)}
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         View
                       </Button>
-                      
+
                       {isDoctor && (
-                        <Button 
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => onCreatePrescription(patient)}
@@ -239,9 +253,9 @@ const PatientTable: React.FC<PatientTableProps> = ({
                           Prescribe
                         </Button>
                       )}
-                      
+
                       {(isReceptionist || isDoctor) && (
-                        <Button 
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleEditPatient(patient)}
@@ -250,9 +264,9 @@ const PatientTable: React.FC<PatientTableProps> = ({
                           Edit
                         </Button>
                       )}
-                      
+
                       {(isReceptionist || isDoctor) && (
-                        <Button 
+                        <Button
                           variant="outline"
                           size="sm"
                           className="text-red-500 hover:text-red-700"
@@ -287,8 +301,8 @@ const PatientTable: React.FC<PatientTableProps> = ({
         </Table>
       </div>
 
-      <PatientDetailsModal 
-        patient={selectedPatient} 
+      <PatientDetailsModal
+        patient={selectedPatient}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
       />
@@ -296,13 +310,17 @@ const PatientTable: React.FC<PatientTableProps> = ({
       <PrescriptionDetailsModal
         isOpen={isPrescriptionDetailsModalOpen}
         onClose={() => setIsPrescriptionDetailsModalOpen(false)}
-        patientCNP={selectedPatientForPrescriptions?.CNP || ''}
-        patientName={selectedPatientForPrescriptions ? `${selectedPatientForPrescriptions.prenume} ${selectedPatientForPrescriptions.nume}` : ''}
+        patientCNP={selectedPatientForPrescriptions?.CNP || ""}
+        patientName={
+          selectedPatientForPrescriptions
+            ? `${selectedPatientForPrescriptions.prenume} ${selectedPatientForPrescriptions.nume}`
+            : ""
+        }
       />
 
       {isEditModalOpen && selectedPatient && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <EditPatientForm 
+          <EditPatientForm
             patient={selectedPatient}
             onPatientUpdate={handlePatientUpdate}
             onCancel={() => setIsEditModalOpen(false)}

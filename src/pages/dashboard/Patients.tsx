@@ -87,7 +87,7 @@ const Patients = () => {
       }
 
       console.log("Fetching patients from API...");
-      const response = await fetch("http://132.220.27.51/angajati/medic/", {
+      const response = await fetch("http://132.220.195.219/angajati/medic/", {
         method: "GET",
         headers: {
           Authorization: `${tokenType} ${finalToken}`,
@@ -236,7 +236,7 @@ const Patients = () => {
       );
 
       // Send POST request to the API with BEARER token format instead of TOKEN format
-      const response = await fetch("http://132.220.27.51/angajati/medic/", {
+      const response = await fetch("http://132.220.195.219/angajati/medic/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -143,7 +143,7 @@ const Users = () => {
       const finalToken = authToken || token;
       if (!finalToken) return;
       try {
-        const response = await fetch("http://132.220.27.51/angajati", {
+        const response = await fetch("http://132.220.195.219/angajati", {
           headers: {
             Authorization: `${tokenType} ${finalToken}`,
             "Content-Type": "application/json",
@@ -222,7 +222,7 @@ const Users = () => {
         });
         return;
       }
-      const response = await fetch("http://132.220.27.51/angajati", {
+      const response = await fetch("http://132.220.195.219/angajati", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

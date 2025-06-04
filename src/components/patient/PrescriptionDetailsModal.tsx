@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Pill, X } from "lucide-react";
-import type { APIPrescription } from '@/types/prescription';
+import type { APIPrescription } from "@/types/prescription";
 
 type PrescriptionDetailsModalProps = {
   isOpen: boolean;
@@ -22,11 +21,13 @@ const PrescriptionDetailsModal: React.FC<PrescriptionDetailsModalProps> = ({
   isOpen,
   onClose,
   patientCNP,
-  patientName
+  patientName,
 }) => {
   const { toast } = useToast();
   const [prescriptions, setPrescriptions] = useState<APIPrescription[]>([]);
-  const [medications, setMedications] = useState<{[key: number]: {denumire: string}}>({});
+  const [medications, setMedications] = useState<{
+    [key: number]: { denumire: string };
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -39,24 +40,26 @@ const PrescriptionDetailsModal: React.FC<PrescriptionDetailsModalProps> = ({
   const fetchPrescriptions = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const authToken = localStorage.getItem('authToken');
-      const tokenType = localStorage.getItem('tokenType') || 'Bearer';
+      const token = localStorage.getItem("token");
+      const authToken = localStorage.getItem("authToken");
+      const tokenType = localStorage.getItem("tokenType") || "Bearer";
       const finalToken = authToken || token;
-      
+
       if (!finalToken) return;
 
-      const response = await fetch('http://132.220.27.51/prescriptii/', {
-        method: 'GET',
+      const response = await fetch("http://132.220.195.219/prescriptii/", {
+        method: "GET",
         headers: {
-          'Authorization': `${tokenType} ${finalToken}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `${tokenType} ${finalToken}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (response.ok) {
         const allPrescriptions: APIPrescription[] = await response.json();
-        const patientPrescriptions = allPrescriptions.filter(p => p.CNP === patientCNP);
+        const patientPrescriptions = allPrescriptions.filter(
+          (p) => p.CNP === patientCNP
+        );
         setPrescriptions(patientPrescriptions);
       }
     } catch (error) {
@@ -64,7 +67,7 @@ const PrescriptionDetailsModal: React.FC<PrescriptionDetailsModalProps> = ({
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to fetch prescriptions"
+        description: "Failed to fetch prescriptions",
       });
     } finally {
       setIsLoading(false);
@@ -73,19 +76,19 @@ const PrescriptionDetailsModal: React.FC<PrescriptionDetailsModalProps> = ({
 
   const fetchMedications = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const authToken = localStorage.getItem('authToken');
-      const tokenType = localStorage.getItem('tokenType') || 'Bearer';
+      const token = localStorage.getItem("token");
+      const authToken = localStorage.getItem("authToken");
+      const tokenType = localStorage.getItem("tokenType") || "Bearer";
       const finalToken = authToken || token;
-      
+
       if (!finalToken) return;
 
-      const response = await fetch('http://132.220.27.51/medicamente/', {
-        method: 'GET',
+      const response = await fetch("http://132.220.195.219/medicamente/", {
+        method: "GET",
         headers: {
-          'Authorization': `${tokenType} ${finalToken}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `${tokenType} ${finalToken}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (response.ok) {
@@ -118,30 +121,46 @@ const PrescriptionDetailsModal: React.FC<PrescriptionDetailsModalProps> = ({
             </div>
           ) : prescriptions.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">No prescriptions found for this patient.</p>
+              <p className="text-gray-500">
+                No prescriptions found for this patient.
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
               {prescriptions.map((prescription) => (
-                <div key={prescription.id_prescriptie} className="border rounded-lg p-4 bg-gray-50">
+                <div
+                  key={prescription.id_prescriptie}
+                  className="border rounded-lg p-4 bg-gray-50"
+                >
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h4 className="font-semibold text-sm text-gray-600">Prescription ID</h4>
+                      <h4 className="font-semibold text-sm text-gray-600">
+                        Prescription ID
+                      </h4>
                       <p className="text-sm">{prescription.id_prescriptie}</p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm text-gray-600">Medication</h4>
+                      <h4 className="font-semibold text-sm text-gray-600">
+                        Medication
+                      </h4>
                       <p className="text-sm">
-                        {medications[prescription.id_medicament]?.denumire || `ID: ${prescription.id_medicament}`}
+                        {medications[prescription.id_medicament]?.denumire ||
+                          `ID: ${prescription.id_medicament}`}
                       </p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm text-gray-600">Quantity</h4>
+                      <h4 className="font-semibold text-sm text-gray-600">
+                        Quantity
+                      </h4>
                       <p className="text-sm">{prescription.cantitate}</p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm text-gray-600">Condition</h4>
-                      <p className="text-sm">{prescription.afectiune || 'Not specified'}</p>
+                      <h4 className="font-semibold text-sm text-gray-600">
+                        Condition
+                      </h4>
+                      <p className="text-sm">
+                        {prescription.afectiune || "Not specified"}
+                      </p>
                     </div>
                   </div>
                 </div>
